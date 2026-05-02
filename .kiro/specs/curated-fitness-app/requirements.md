@@ -19,6 +19,10 @@ A curated fitness app that generates personalized workout programs and nutrition
 - **Substitution_Engine**: The system component that replaces exercises incompatible with a User's impediments or injuries.
 - **Exercise**: A single movement or drill within a workout session, including sets, reps, and load guidance.
 - **Macro_Target**: The daily protein, carbohydrate, and fat targets derived from the User's TDEE and goals.
+- **Equipment_Profile**: The set of equipment the User has declared as available for training (e.g., full gym, home gym with dumbbells, resistance bands, bodyweight only).
+- **Equipment_Tier**: A predefined category of equipment availability used to filter eligible exercises (e.g., Full_Gym, Home_Gym, Dumbbells_Only, Resistance_Bands, Bodyweight_Only).
+- **Tempo_Prescription**: A four-digit notation (eccentric–pause–concentric–pause) specifying the speed of each phase of an Exercise repetition (e.g., 3-1-2-0).
+- **TUT**: Time Under Tension — the total duration in seconds a muscle is under load during a set, used as a training stimulus parameter for hypertrophy-focused programming.
 
 ---
 
@@ -39,6 +43,8 @@ A curated fitness app that generates personalized workout programs and nutrition
 7. THE Onboarding_Flow SHALL collect the User's nutrition preferences: preferred cuisine, budget level, available cooking time per meal, and ingredient flexibility.
 8. WHEN the User completes all required onboarding steps, THE Onboarding_Flow SHALL pass the collected profile to the Program_Generator.
 9. IF the User skips an optional onboarding field, THEN THE Onboarding_Flow SHALL apply a sensible default value for that field and notify the User of the default applied.
+10. THE Onboarding_Flow SHALL prompt the User to select their Equipment_Tier from the following options: Full_Gym, Home_Gym, Dumbbells_Only, Resistance_Bands, and Bodyweight_Only.
+11. WHEN the User selects an Equipment_Tier, THE Onboarding_Flow SHALL pass the Equipment_Profile to the Program_Generator for use in exercise selection.
 
 ---
 
@@ -67,6 +73,9 @@ A curated fitness app that generates personalized workout programs and nutrition
 4. WHERE the User has selected a Sport_Activity, THE Program_Generator SHALL reduce or redistribute training volume on days adjacent to sport sessions to manage fatigue.
 5. WHERE the User has selected a Sport_Activity, THE Program_Generator SHALL include sport-specific accessory work (e.g., lateral agility drills for basketball, rotational stability for pickleball) within the Workout_Plan.
 6. THE Program_Generator SHALL generate a Workout_Plan that is distinct from a generic template — each plan SHALL reflect at least the User's training style, Split, and Physical_Impediments.
+7. WHERE the User's primary fitness goal is muscle gain, THE Program_Generator SHALL assign a Tempo_Prescription to each Exercise in the Workout_Plan to emphasize time under tension.
+8. WHERE the User's primary fitness goal is muscle gain, THE Program_Generator SHALL target a TUT of 40–70 seconds per set for primary compound and isolation Exercises.
+9. WHERE the User's primary fitness goal is muscle gain, THE Program_Generator SHALL include at least one Exercise per session with an eccentric phase of 3 seconds or longer to maximize mechanical tension.
 
 ---
 
@@ -81,6 +90,7 @@ A curated fitness app that generates personalized workout programs and nutrition
 3. WHEN a Physical_Impediment affects lower-body mechanics (e.g., stiff ankles), THE Substitution_Engine SHALL apply positional or equipment modifications (e.g., heel-raised squats, box squats) before removing the movement category entirely.
 4. THE Substitution_Engine SHALL display a brief explanation to the User for each substitution, stating the impediment addressed and the rationale for the alternative.
 5. WHEN the User marks a Physical_Impediment as resolved, THE Substitution_Engine SHALL restore the original Exercise to the Workout_Plan on the next program refresh.
+6. WHEN providing an alternative Exercise, THE Substitution_Engine SHALL only select alternatives that are performable within the User's Equipment_Profile.
 
 ---
 
@@ -139,3 +149,38 @@ A curated fitness app that generates personalized workout programs and nutrition
 3. WHERE the User's profile indicates beginner experience level, THE Program_Generator SHALL select Exercises with lower technical complexity and include additional safety notes.
 4. WHERE the User's profile indicates beginner experience level, THE Workout_Plan SHALL include a warm-up routine at the start of each session.
 5. WHEN the User requests more detail on an Exercise, THE Workout_Plan SHALL display an expanded view with step-by-step instructions.
+
+---
+
+### Requirement 9: Equipment Availability and Exercise Filtering
+
+**User Story:** As a user who trains at home or in a gym with limited equipment, I want the app to know what equipment I have available, so that every exercise in my program is one I can actually perform.
+
+#### Acceptance Criteria
+
+1. WHEN the User's Equipment_Profile is provided, THE Program_Generator SHALL only include Exercises that are executable with the equipment in that Equipment_Profile.
+2. THE Program_Generator SHALL maintain an exercise library in which each Exercise is tagged with one or more Equipment_Tiers required to perform it.
+3. WHEN the User's Equipment_Tier is Bodyweight_Only, THE Program_Generator SHALL construct a complete Workout_Plan using only bodyweight Exercises and SHALL not reference any equipment-dependent movements.
+4. WHEN the User's Equipment_Tier is Resistance_Bands, THE Program_Generator SHALL include Exercises compatible with resistance bands and bodyweight, and SHALL not include barbell, dumbbell, or machine-dependent movements.
+5. WHEN the User's Equipment_Tier is Dumbbells_Only, THE Program_Generator SHALL include Exercises compatible with dumbbells, resistance bands, and bodyweight, and SHALL not include barbell or machine-dependent movements.
+6. WHEN the User's Equipment_Tier is Home_Gym, THE Program_Generator SHALL include Exercises compatible with the equipment commonly found in a home gym (e.g., barbell, dumbbells, pull-up bar, bench) and SHALL not include cable machine or plate-loaded machine movements.
+7. WHEN the User's Equipment_Tier is Full_Gym, THE Program_Generator SHALL have access to the full exercise library with no equipment-based restrictions.
+8. WHEN the User updates their Equipment_Profile after program creation, THE Program_Generator SHALL regenerate the Workout_Plan to replace any Exercises that are no longer compatible with the updated Equipment_Profile.
+9. IF no Equipment_Profile has been collected, THEN THE Program_Generator SHALL default to Bodyweight_Only and notify the User that equipment preferences have not been set.
+
+---
+
+### Requirement 10: Hypertrophy-Focused Training and Time Under Tension
+
+**User Story:** As a user focused on muscle growth, I want my program to incorporate hypertrophy-specific techniques like tempo control and time under tension, so that my training is optimized for maximizing muscle development.
+
+#### Acceptance Criteria
+
+1. WHERE the User's primary fitness goal is muscle gain, THE Program_Generator SHALL assign a Tempo_Prescription in eccentric–pause–concentric–pause format to each Exercise in the Workout_Plan.
+2. WHERE the User's primary fitness goal is muscle gain, THE Workout_Plan SHALL display the Tempo_Prescription alongside the sets and reps for each Exercise.
+3. WHERE the User's primary fitness goal is muscle gain, THE Program_Generator SHALL select Exercises that permit controlled eccentric loading (e.g., Romanian deadlifts, incline curls, Nordic curls) as primary hypertrophy movements.
+4. WHERE the User's primary fitness goal is muscle gain, THE Program_Generator SHALL include at least one Exercise per muscle group per week with an eccentric phase of 3 seconds or longer.
+5. WHEN the User's primary fitness goal is muscle gain and the User's experience level is intermediate or advanced, THE Program_Generator SHALL include intensification techniques (e.g., drop sets, rest-pause sets, mechanical drop sets) in at least one Exercise per session.
+6. THE Workout_Plan SHALL display the estimated TUT per set for each Exercise where a Tempo_Prescription is assigned, calculated as the sum of all four tempo phases multiplied by the prescribed rep count.
+7. IF the User's Equipment_Profile does not support the prescribed Tempo_Prescription for a given Exercise, THEN THE Substitution_Engine SHALL select an equipment-compatible alternative that preserves the intended TUT range.
+8. WHEN the User's primary fitness goal changes from muscle gain to another goal, THE Program_Generator SHALL remove Tempo_Prescriptions and TUT targets from the Workout_Plan on the next program refresh.
