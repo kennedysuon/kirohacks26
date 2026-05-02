@@ -49,7 +49,8 @@ graph TD
     end
 
     OF -->|POST /api/onboarding| PG
-    WP -->|GET /api/workout-plan| API
+    WP -->|GET /api/workout-plan| PG
+    NP -->|GET /api/nutrition-plan| PG
     SL -->|POST /api/session-log| API
     BM -->|POST /api/body-metrics| API
     PD -->|GET /api/progress| API
@@ -59,14 +60,16 @@ graph TD
     PG --> NUT
     PG --> POE
     API --> Data
+    PG --> Data
 ```
 
 ### Request Flow
 
 1. User completes onboarding → `POST /api/onboarding` → Program_Generator runs → Workout_Plan + Nutrition_Plan stored → redirect to dashboard.
-2. User opens session → `GET /api/workout-plan/session/:id` → renders exercises with Overload_Recommendations.
-3. User logs sets → `POST /api/session-log` → persisted → Progressive_Overload_Engine evaluates on next plan fetch.
-4. User logs body metrics → `POST /api/body-metrics` → Weight_Trend recalculated → TDEE/Macro_Targets updated if needed.
+2. User opens workout session → `GET /api/workout-plan/session/:id` → Program_Generator serves session with Overload_Recommendations.
+3. User views nutrition plan → `GET /api/nutrition-plan` → Program_Generator serves the stored Nutrition_Plan; regenerated automatically when weight or activity level changes.
+4. User logs sets → `POST /api/session-log` → persisted → Progressive_Overload_Engine evaluates on next plan fetch.
+5. User logs body metrics → `POST /api/body-metrics` → Weight_Trend recalculated → TDEE/Macro_Targets updated if needed.
 
 ---
 
