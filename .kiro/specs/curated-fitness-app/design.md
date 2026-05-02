@@ -81,8 +81,8 @@ A multi-step wizard collecting all profile data. Each step maps to a section of 
 
 **Steps:**
 1. Goal selection (muscle gain, fat loss, strength, general fitness, sport performance)
-2. Training style (bodybuilding, powerlifting, pilates/yoga, body-goal programs for women)
-3. Split preference (PPL, Arnold Split, Glute Program, full-body, upper/lower)
+2. Training style (bodybuilding, powerlifting, pilates/yoga)
+3. Split preference (PPL, Arnold Split, Glute Program, full-body, upper/lower; Custom_Hybrid available for intermediate/advanced)
 4. Experience level (beginner, intermediate, advanced)
 5. Physical impediments (multi-select from common list + free text)
 6. Sport activity (sport type + weekly hours)
@@ -358,7 +358,6 @@ enum TrainingStyle {
   BODYBUILDING
   POWERLIFTING
   PILATES_YOGA
-  BODY_GOAL_WOMEN
 }
 
 enum SplitType {
@@ -367,6 +366,7 @@ enum SplitType {
   GLUTE_PROGRAM
   FULL_BODY
   UPPER_LOWER
+  CUSTOM_HYBRID  // intermediate/advanced only — user-defined combination of splits (e.g. PPL x Arnold)
 }
 
 enum ExperienceLevel {

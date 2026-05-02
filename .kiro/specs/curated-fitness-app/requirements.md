@@ -43,8 +43,8 @@ A curated fitness app that generates personalized workout programs and nutrition
 #### Acceptance Criteria
 
 1. THE Onboarding_Flow SHALL collect the User's primary fitness goal (e.g., muscle gain, fat loss, strength, general fitness, sport performance).
-2. THE Onboarding_Flow SHALL collect the User's training style preference from the following options: bodybuilding, powerlifting, pilates/yoga, and body-goal programs for women.
-3. THE Onboarding_Flow SHALL collect the User's preferred workout split (e.g., PPL, Arnold Split, Glute Program, full-body, upper/lower).
+2. THE Onboarding_Flow SHALL collect the User's training style preference from the following options: bodybuilding and powerlifting, pilates/yoga. Body-goal programs for women are served under the bodybuilding style.
+3. THE Onboarding_Flow SHALL collect the User's preferred workout split (e.g., PPL, Arnold Split, Glute Program, full-body, upper/lower). WHERE the User's experience level is intermediate or advanced, THE Onboarding_Flow SHALL also offer a Custom_Hybrid split option that allows the User to combine two or more standard splits (e.g., PPL x Arnold Split).
 4. THE Onboarding_Flow SHALL collect the User's current physical impediments, if any, via a structured selection or free-text entry.
 5. THE Onboarding_Flow SHALL collect the User's Sport_Activity participation, including sport type and approximate weekly hours.
 6. THE Onboarding_Flow SHALL collect the User's biometric data: age, sex, height, weight, and activity level, for TDEE calculation.
