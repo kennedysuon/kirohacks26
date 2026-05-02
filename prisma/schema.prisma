@@ -1,5 +1,9 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
+//
+// Note: SQLite does not support enums. All enum-typed fields are stored as
+// String. Valid values are enforced at the TypeScript layer via the types
+// defined in src/types/index.ts.
 
 generator client {
   provider = "prisma-client-js"
@@ -8,64 +12,6 @@ generator client {
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
-}
-
-// ─── Enums ────────────────────────────────────────────────────────────────────
-
-enum FitnessGoal {
-  MUSCLE_GAIN
-  FAT_LOSS
-  STRENGTH
-  GENERAL_FITNESS
-  SPORT_PERFORMANCE
-}
-
-enum TrainingStyle {
-  BODYBUILDING
-  POWERLIFTING
-  PILATES_YOGA
-}
-
-enum SplitType {
-  PPL
-  ARNOLD_SPLIT
-  GLUTE_PROGRAM
-  FULL_BODY
-  UPPER_LOWER
-  CUSTOM_HYBRID
-}
-
-enum ExperienceLevel {
-  BEGINNER
-  INTERMEDIATE
-  ADVANCED
-}
-
-enum Sex {
-  MALE
-  FEMALE
-}
-
-enum ActivityLevel {
-  SEDENTARY
-  LIGHTLY_ACTIVE
-  MODERATELY_ACTIVE
-  VERY_ACTIVE
-  EXTRA_ACTIVE
-}
-
-enum BudgetLevel {
-  LOW
-  MEDIUM
-  HIGH
-}
-
-enum EquipmentTier {
-  FULL_GYM
-  HOME_GYM
-  DUMBBELLS_ONLY
-  RESISTANCE_BANDS
-  BODYWEIGHT_ONLY
 }
 
 // ─── Models ───────────────────────────────────────────────────────────────────
@@ -83,27 +29,27 @@ model User {
 }
 
 model UserProfile {
-  id                 String          @id @default(cuid())
-  userId             String          @unique
-  user               User            @relation(fields: [userId], references: [id])
-  primaryGoal        FitnessGoal
-  trainingStyle      TrainingStyle
-  splitPreference    SplitType
-  experienceLevel    ExperienceLevel
-  impediments        String          // JSON array of impediment tags
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id])
+  primaryGoal        String   // FitnessGoal: MUSCLE_GAIN | FAT_LOSS | STRENGTH | GENERAL_FITNESS | SPORT_PERFORMANCE
+  trainingStyle      String   // TrainingStyle: BODYBUILDING | POWERLIFTING | PILATES_YOGA
+  splitPreference    String   // SplitType: PPL | ARNOLD_SPLIT | GLUTE_PROGRAM | FULL_BODY | UPPER_LOWER | CUSTOM_HYBRID
+  experienceLevel    String   // ExperienceLevel: BEGINNER | INTERMEDIATE | ADVANCED
+  impediments        String   // JSON array of impediment tags
   sportActivity      String?
   sportHoursPerWeek  Float?
   age                Int
-  sex                Sex
+  sex                String   // Sex: MALE | FEMALE
   heightCm           Float
   weightKg           Float
-  activityLevel      ActivityLevel
+  activityLevel      String   // ActivityLevel: SEDENTARY | LIGHTLY_ACTIVE | MODERATELY_ACTIVE | VERY_ACTIVE | EXTRA_ACTIVE
   cuisinePreference  String?
-  budgetLevel        BudgetLevel     @default(MEDIUM)
+  budgetLevel        String   @default("MEDIUM") // BudgetLevel: LOW | MEDIUM | HIGH
   cookingTimeMinutes Int?
-  ingredientFlexible Boolean         @default(true)
-  equipmentTier      EquipmentTier   @default(BODYWEIGHT_ONLY)
-  updatedAt          DateTime        @updatedAt
+  ingredientFlexible Boolean  @default(true)
+  equipmentTier      String   @default("BODYWEIGHT_ONLY") // EquipmentTier: FULL_GYM | HOME_GYM | DUMBBELLS_ONLY | RESISTANCE_BANDS | BODYWEIGHT_ONLY
+  updatedAt          DateTime @updatedAt
 }
 
 model WorkoutPlan {
