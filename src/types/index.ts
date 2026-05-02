@@ -1,12 +1,4 @@
 import type {
-  FitnessGoal,
-  TrainingStyle,
-  SplitType,
-  ExperienceLevel,
-  Sex,
-  ActivityLevel,
-  BudgetLevel,
-  EquipmentTier,
   UserProfile,
   WorkoutPlan,
   NutritionPlan,
@@ -14,16 +6,47 @@ import type {
   BodyMetricsLog,
 } from '@prisma/client'
 
-// Re-export Prisma enums for convenience
+// ─── Enum-equivalent string literal types (SQLite uses String fields) ─────────
+
+export type FitnessGoal =
+  | 'MUSCLE_GAIN'
+  | 'FAT_LOSS'
+  | 'STRENGTH'
+  | 'GENERAL_FITNESS'
+  | 'SPORT_PERFORMANCE'
+
+export type TrainingStyle = 'BODYBUILDING' | 'POWERLIFTING' | 'PILATES_YOGA'
+
+export type SplitType =
+  | 'PPL'
+  | 'ARNOLD_SPLIT'
+  | 'GLUTE_PROGRAM'
+  | 'FULL_BODY'
+  | 'UPPER_LOWER'
+  | 'CUSTOM_HYBRID'
+
+export type ExperienceLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'
+
+export type Sex = 'MALE' | 'FEMALE'
+
+export type ActivityLevel =
+  | 'SEDENTARY'
+  | 'LIGHTLY_ACTIVE'
+  | 'MODERATELY_ACTIVE'
+  | 'VERY_ACTIVE'
+  | 'EXTRA_ACTIVE'
+
+export type BudgetLevel = 'LOW' | 'MEDIUM' | 'HIGH'
+
+export type EquipmentTier =
+  | 'FULL_GYM'
+  | 'HOME_GYM'
+  | 'DUMBBELLS_ONLY'
+  | 'RESISTANCE_BANDS'
+  | 'BODYWEIGHT_ONLY'
+
+// Re-export Prisma model types for convenience
 export type {
-  FitnessGoal,
-  TrainingStyle,
-  SplitType,
-  ExperienceLevel,
-  Sex,
-  ActivityLevel,
-  BudgetLevel,
-  EquipmentTier,
   UserProfile,
   WorkoutPlan,
   NutritionPlan,
@@ -75,6 +98,24 @@ export interface NutritionPreferences {
   budgetLevel: BudgetLevel
   cookingTimeMinutes?: number
   ingredientFlexible: boolean
+}
+
+// ─── Meal template (mirrors the Meal Prisma model, used before DB persistence) ─
+
+export interface MealTemplate {
+  id: string
+  name: string
+  cuisine: string
+  prepTimeMinutes: number
+  estimatedCostUsd: number
+  proteinG: number
+  carbsG: number
+  fatG: number
+  calories: number
+  ingredients: Array<{ name: string; amount: string; unit: string }>
+  instructions: string
+  // budget tag used for filtering before DB write
+  budgetLevel: BudgetLevel
 }
 
 // ─── Program Generator ────────────────────────────────────────────────────────
