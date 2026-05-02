@@ -1,0 +1,222 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum FitnessGoal {
+  MUSCLE_GAIN
+  FAT_LOSS
+  STRENGTH
+  GENERAL_FITNESS
+  SPORT_PERFORMANCE
+}
+
+enum TrainingStyle {
+  BODYBUILDING
+  POWERLIFTING
+  PILATES_YOGA
+}
+
+enum SplitType {
+  PPL
+  ARNOLD_SPLIT
+  GLUTE_PROGRAM
+  FULL_BODY
+  UPPER_LOWER
+  CUSTOM_HYBRID
+}
+
+enum ExperienceLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum Sex {
+  MALE
+  FEMALE
+}
+
+enum ActivityLevel {
+  SEDENTARY
+  LIGHTLY_ACTIVE
+  MODERATELY_ACTIVE
+  VERY_ACTIVE
+  EXTRA_ACTIVE
+}
+
+enum BudgetLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum EquipmentTier {
+  FULL_GYM
+  HOME_GYM
+  DUMBBELLS_ONLY
+  RESISTANCE_BANDS
+  BODYWEIGHT_ONLY
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id              String           @id @default(cuid())
+  email           String?          @unique
+  createdAt       DateTime         @default(now())
+  profile         UserProfile?
+  workoutPlan     WorkoutPlan?
+  nutritionPlan   NutritionPlan?
+  sessionLogs     SessionLog[]
+  bodyMetricsLogs BodyMetricsLog[]
+  injuryLogs      InjuryLog[]
+}
+
+model UserProfile {
+  id                 String          @id @default(cuid())
+  userId             String          @unique
+  user               User            @relation(fields: [userId], references: [id])
+  primaryGoal        FitnessGoal
+  trainingStyle      TrainingStyle
+  splitPreference    SplitType
+  experienceLevel    ExperienceLevel
+  impediments        String          // JSON array of impediment tags
+  sportActivity      String?
+  sportHoursPerWeek  Float?
+  age                Int
+  sex                Sex
+  heightCm           Float
+  weightKg           Float
+  activityLevel      ActivityLevel
+  cuisinePreference  String?
+  budgetLevel        BudgetLevel     @default(MEDIUM)
+  cookingTimeMinutes Int?
+  ingredientFlexible Boolean         @default(true)
+  equipmentTier      EquipmentTier   @default(BODYWEIGHT_ONLY)
+  updatedAt          DateTime        @updatedAt
+}
+
+model WorkoutPlan {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id])
+  sessions  Session[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Session {
+  id             String            @id @default(cuid())
+  workoutPlanId  String
+  workoutPlan    WorkoutPlan       @relation(fields: [workoutPlanId], references: [id])
+  dayOfWeek      Int               // 0-6
+  sessionName    String
+  warmupIncluded Boolean           @default(false)
+  exercises      SessionExercise[]
+}
+
+model SessionExercise {
+  id              String  @id @default(cuid())
+  sessionId       String
+  session         Session @relation(fields: [sessionId], references: [id])
+  exerciseId      String  // references Exercise in library
+  sets            Int
+  repsMin         Int
+  repsMax         Int
+  rpe             Float?
+  tempoEccentric  Int?    // seconds
+  tempoPause1     Int?
+  tempoConcentric Int?
+  tempoPause2     Int?
+  tutPerSet       Int?    // calculated: (e+p1+c+p2) * repsMin
+  notes           String?
+  orderIndex      Int
+}
+
+model NutritionPlan {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  tdee          Float
+  calorieTarget Float
+  proteinG      Float
+  carbsG        Float
+  fatG          Float
+  meals         Meal[]
+  updatedAt     DateTime @updatedAt
+}
+
+model Meal {
+  id               String        @id @default(cuid())
+  nutritionPlanId  String
+  nutritionPlan    NutritionPlan @relation(fields: [nutritionPlanId], references: [id])
+  name             String
+  cuisine          String?
+  prepTimeMinutes  Int
+  estimatedCostUsd Float
+  proteinG         Float
+  carbsG           Float
+  fatG             Float
+  calories         Float
+  ingredients      String        // JSON array of {name, amount, unit}
+  instructions     String
+}
+
+model SessionLog {
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
+  sessionDate DateTime
+  sessionId   String?    // reference to planned Session
+  sets        SetLog[]
+  createdAt   DateTime   @default(now())
+  lockedAt    DateTime?  // set to createdAt + 24h; edits blocked after
+}
+
+model SetLog {
+  id            String     @id @default(cuid())
+  sessionLogId  String
+  sessionLog    SessionLog @relation(fields: [sessionLogId], references: [id])
+  exerciseId    String
+  setNumber     Int
+  repsPerformed Int
+  loadKg        Float
+  skipped       Boolean    @default(false)
+}
+
+model BodyMetricsLog {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  recordedAt   DateTime @default(now())
+  weightKg     Float?
+  waistCm      Float?
+  hipsCm       Float?
+  chestCm      Float?
+  leftArmCm    Float?
+  rightArmCm   Float?
+  leftThighCm  Float?
+  rightThighCm Float?
+  photoUrl     String?
+}
+
+model InjuryLog {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+  bodyArea     String
+  severity     Int       // 1-10
+  onsetDate    DateTime
+  resolvedDate DateTime?
+  active       Boolean   @default(true)
+}

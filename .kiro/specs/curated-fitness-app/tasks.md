@@ -12,7 +12,7 @@ TypeScript throughout. Prisma + SQLite for dev. fast-check for property-based te
 
 ## 🤝 Shared — Do Together First
 
-- [ ] 1. Project scaffold and data foundation
+- [x] 1. Project scaffold and data foundation
   - Initialise a Next.js 14 project with TypeScript (`npx create-next-app@latest --typescript`)
   - Install dependencies: `prisma`, `@prisma/client`, `recharts`, `fast-check`, `zod`, `@hookform/resolvers`, `react-hook-form`
   - Create `prisma/schema.prisma` with all models and enums from the design document: `User`, `UserProfile`, `WorkoutPlan`, `Session`, `SessionExercise`, `NutritionPlan`, `Meal`, `SessionLog`, `SetLog`, `BodyMetricsLog`, `InjuryLog`, and all enums (`FitnessGoal`, `TrainingStyle`, `SplitType`, `ExperienceLevel`, `Sex`, `ActivityLevel`, `BudgetLevel`, `EquipmentTier`)
