@@ -299,14 +299,14 @@ TypeScript throughout. Prisma + SQLite for dev. fast-check for property-based te
     - Chronological grid of progress photos; click any two to open side-by-side comparison modal
     - _Requirements: 13.7_
 
-- [ ] 17. Wiring — nutrition/progress vertical [Person B]
-  - [ ] 17.1 Wire TDEE recalculation on body metrics submission
+- [x] 17. Wiring — nutrition/progress vertical [Person B]
+  - [x] 17.1 Wire TDEE recalculation on body metrics submission
     - In `POST /api/body-metrics` handler: after persisting entry, call `calculateTDEE` with new weight, call `deriveMacroTargets`, update `NutritionPlan` in DB
     - _Requirements: 2.4_
-  - [ ] 17.2 Wire weight trend deviation notification
+  - [x] 17.2 Wire weight trend deviation notification
     - In `GET /api/progress`: compute 2-week weight trend; compare to goal expectation; include `{ trendAlert: string | null }` in response; surface alert in `SummaryCard`
     - _Requirements: 15.2, 15.3_
-  - [ ] 17.3 Progression data deletion flow
+  - [x] 17.3 Progression data deletion flow
     - Add "Delete my data" option in user settings page (`src/app/settings/page.tsx`)
     - Require user to type "DELETE" to confirm
     - `DELETE /api/user/progression-data`: permanently delete all `BodyMetricsLog` and `SessionLog` records for the user; notify user that program will revert to profile-only defaults
