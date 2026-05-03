@@ -153,7 +153,7 @@ export default function SessionPage() {
               <span className="font-medium">Warm-up</span>
             </div>
             <p className="text-sm text-[#a3a3a3]">
-              5–10 min light cardio + dynamic stretching for the muscle groups in today's session.
+              5–10 min light cardio + dynamic stretching for the muscle groups in today&apos;s session.
             </p>
           </div>
         )}

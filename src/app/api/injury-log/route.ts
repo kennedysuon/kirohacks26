@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { applyInjuryAdjustments } from '@/lib/injuryAdjustment'
 import type { GeneratedWorkoutPlan } from '@/lib/programGenerator'
+import type { EquipmentTier } from '@/types'
 
 // ─── Validation Schema ────────────────────────────────────────────────────────
 
@@ -120,7 +121,7 @@ export async function POST(req: NextRequest) {
       where: { userId: data.userId, active: true },
     })
 
-    const equipmentTier = user.profile?.equipmentTier ?? 'BODYWEIGHT_ONLY'
+    const equipmentTier = (user.profile?.equipmentTier ?? 'BODYWEIGHT_ONLY') as EquipmentTier
 
     // Apply injury adjustments
     const adjustedPlan = applyInjuryAdjustments(

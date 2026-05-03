@@ -283,7 +283,7 @@ export default function OnboardingPage() {
         {/* Step 0: Goal */}
         {step === 0 && (
           <div>
-            <h1 className="text-2xl font-bold text-white mb-6">What's your primary goal?</h1>
+            <h1 className="text-2xl font-bold text-white mb-6">What&apos;s your primary goal?</h1>
             <div className="space-y-3">
               {GOALS.map((g) => (
                 <OptionCard
@@ -537,7 +537,7 @@ export default function OnboardingPage() {
         {/* Step 8: Review */}
         {step === 8 && (
           <div>
-            <h1 className="text-2xl font-bold text-white mb-1">Here's what we filled in for you.</h1>
+            <h1 className="text-2xl font-bold text-white mb-1">Here&apos;s what we filled in for you.</h1>
             <p className="text-sm text-[#737373] mb-6">These defaults help us create your personalized plan. You can adjust them anytime.</p>
             <div className="space-y-3">
               {reviewItems.map((item) => (

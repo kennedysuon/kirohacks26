@@ -2,7 +2,7 @@ import { getSplitTemplate, getCompressedSplit } from '@/lib/splitTemplates'
 import { filterByEquipmentTier, filterByMuscleGroup, filterByMovementPattern, filterByComplexity } from '@/lib/exerciseLibrary'
 import { findSubstitute } from '@/lib/substitutionEngine'
 import { calculateTUT } from '@/lib/tut'
-import type { ExerciseDefinition } from '@/types'
+import type { ExerciseDefinition, EquipmentTier, ActivityLevel } from '@/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -45,7 +45,7 @@ export interface WorkoutPlanInput {
   impediments: string[]        // parsed from JSON string
   sportActivity?: string | null
   sportHoursPerWeek?: number | null
-  equipmentTier: string
+  equipmentTier: EquipmentTier
   availableDaysPerWeek?: number // optional override
 }
 
@@ -140,7 +140,7 @@ function selectExercisesForSession(
 function applyImpedimentSubstitutions(
   exercises: ExerciseDefinition[],
   impediments: string[],
-  equipmentTier: string
+  equipmentTier: EquipmentTier
 ): Array<{ exercise: ExerciseDefinition; rationale?: string }> {
   return exercises.map((ex) => {
     const isContraindicated = ex.contraindications.some((c) => impediments.includes(c))
@@ -306,25 +306,32 @@ export function generateWorkoutPlan(input: WorkoutPlanInput): GeneratedWorkoutPl
 
 import { calculateTDEE } from '@/lib/tdee'
 import { deriveMacroTargets } from '@/lib/macros'
-import type { BiometricInput, MacroTargets } from '@/types'
+import { generateNutritionPlan } from '@/lib/nutritionPlanner'
+import type { BiometricInput, MacroTargets, NutritionPreferences, DailyNutritionPlan } from '@/types'
 
 export interface FullProgramInput extends WorkoutPlanInput {
   age: number
   sex: 'male' | 'female'
   heightCm: number
   weightKg: number
-  activityLevel: string
+  activityLevel: ActivityLevel
+  // Nutrition preferences
+  cuisinePreference?: string | null
+  budgetLevel: string
+  cookingTimeMinutes?: number | null
+  ingredientFlexible: boolean
 }
 
 export interface FullProgramOutput {
   workoutPlan: GeneratedWorkoutPlan
+  nutritionPlan: DailyNutritionPlan
   tdee: number
   macroTargets: MacroTargets
 }
 
 /**
- * Orchestrate full program generation: TDEE → macros → workout plan.
- * Nutrition plan is generated separately by Person B's nutritionPlanner.
+ * Orchestrate full program generation: TDEE → macros → workout plan → nutrition plan.
+ * Requirements: 1.8, 6.1
  */
 export function generateProgram(input: FullProgramInput): FullProgramOutput {
   const biometrics: BiometricInput = {
@@ -339,5 +346,14 @@ export function generateProgram(input: FullProgramInput): FullProgramOutput {
   const macroTargets = deriveMacroTargets(tdee, input.primaryGoal, input.weightKg)
   const workoutPlan = generateWorkoutPlan(input)
 
-  return { workoutPlan, tdee, macroTargets }
+  // Generate nutrition plan from macros and preferences
+  const nutritionPreferences: NutritionPreferences = {
+    cuisinePreference: input.cuisinePreference ?? undefined,
+    budgetLevel: input.budgetLevel as any, // Cast to BudgetLevel
+    cookingTimeMinutes: input.cookingTimeMinutes ?? undefined,
+    ingredientFlexible: input.ingredientFlexible,
+  }
+  const nutritionPlan = generateNutritionPlan(macroTargets, nutritionPreferences)
+
+  return { workoutPlan, nutritionPlan, tdee, macroTargets }
 }

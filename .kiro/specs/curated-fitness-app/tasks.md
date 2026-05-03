@@ -316,12 +316,12 @@ TypeScript throughout. Prisma + SQLite for dev. fast-check for property-based te
 
 ## 🤝 Shared — Final Integration
 
-- [ ] 18. Wire nutrition plan into program generator [Both]
+- [x] 18. Wire nutrition plan into program generator [Both]
   - Update `generateProgram` in `src/lib/programGenerator.ts` to call `generateNutritionPlan` (Person B's module) and return the full `ProgramGeneratorOutput` including `nutritionPlan`
   - Ensure `POST /api/onboarding` persists both `WorkoutPlan` and `NutritionPlan`
   - _Requirements: 1.8, 6.1_
 
-- [ ] 19. Final checkpoint — full integration [Both]
+- [x] 19. Final checkpoint — full integration [Both]
   - Run all tests end-to-end; verify onboarding → program generation → workout view → session logging → progress dashboard flow works together
   - Fix any integration issues at the seams between the two verticals
 

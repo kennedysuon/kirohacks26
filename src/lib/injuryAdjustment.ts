@@ -1,6 +1,7 @@
 import { findSubstitute } from '@/lib/substitutionEngine'
 import { getExerciseById } from '@/lib/exerciseLibrary'
 import type { GeneratedWorkoutPlan, GeneratedSessionExercise } from '@/lib/programGenerator'
+import type { EquipmentTier } from '@/types'
 
 export interface ActiveInjuryInput {
   bodyArea: string
@@ -25,7 +26,7 @@ export interface ActiveInjuryInput {
 export function applyInjuryAdjustments(
   plan: GeneratedWorkoutPlan,
   injuries: ActiveInjuryInput[],
-  equipmentTier: string
+  equipmentTier: EquipmentTier
 ): GeneratedWorkoutPlan {
   if (injuries.length === 0) return plan
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -135,12 +136,11 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                 backgroundColor: 'var(--background)',
               }}
             >
-              <img
+              <Image
                 src={photo.photoUrl}
                 alt={`Progress photo from ${photo.date}`}
+                fill
                 style={{
-                  width: '100%',
-                  height: '100%',
                   objectFit: 'cover',
                 }}
               />
@@ -225,15 +225,15 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
               {selectedPhotos.map((photoUrl, idx) => {
                 const photo = photos.find((p) => p.photoUrl === photoUrl)
                 return (
-                  <div key={idx}>
-                    <img
+                  <div key={idx} style={{ position: 'relative', width: '100%', aspectRatio: '3/4' }}>
+                    <Image
                       src={photoUrl}
                       alt={`Comparison photo ${idx + 1}`}
+                      fill
                       style={{
-                        width: '100%',
-                        height: 'auto',
                         borderRadius: '0.5rem',
                         border: '1px solid var(--border)',
+                        objectFit: 'cover',
                       }}
                     />
                     {photo && (

@@ -118,6 +118,28 @@ export interface MealTemplate {
   budgetLevel: BudgetLevel
 }
 
+// ─── Daily Nutrition Plan (output from nutritionPlanner) ─────────────────────
+
+export type MealSlot = 'breakfast' | 'lunch' | 'dinner' | 'snack'
+
+export interface PlannedMeal extends MealTemplate {
+  slot: MealSlot
+}
+
+export interface DailyNutritionPlan {
+  calorieTarget: number
+  proteinG: number
+  carbsG: number
+  fatG: number
+  meals: PlannedMeal[]
+  dailyTotals: {
+    calories: number
+    proteinG: number
+    carbsG: number
+    fatG: number
+  }
+}
+
 // ─── Program Generator ────────────────────────────────────────────────────────
 
 export interface ProgressionData {

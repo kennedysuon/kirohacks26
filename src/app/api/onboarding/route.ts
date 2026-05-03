@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { generateProgram } from '@/lib/programGenerator'
 import type { FullProgramInput } from '@/lib/programGenerator'
+import type { EquipmentTier, ActivityLevel } from '@/types'
 
 // ─── Validation Schema ────────────────────────────────────────────────────────
 
@@ -112,7 +113,7 @@ export async function POST(req: NextRequest) {
       ? Math.round(data.weightKg * 0.453592 * 10) / 10
       : data.weightKg
 
-    // Generate program (workout plan + TDEE + macros)
+    // Generate program (workout plan + nutrition plan + TDEE + macros)
     const programInput: FullProgramInput = {
       primaryGoal: data.primaryGoal,
       trainingStyle: data.trainingStyle,
@@ -121,15 +122,20 @@ export async function POST(req: NextRequest) {
       impediments: data.impediments,
       sportActivity: data.sportActivity ?? undefined,
       sportHoursPerWeek: data.sportHoursPerWeek ?? undefined,
-      equipmentTier: data.equipmentTier,
+      equipmentTier: data.equipmentTier as EquipmentTier,
       age: data.age,
       sex: data.sex,
       heightCm: data.heightCm,
       weightKg,
-      activityLevel: data.activityLevel,
+      activityLevel: data.activityLevel as ActivityLevel,
+      // Nutrition preferences
+      cuisinePreference: data.cuisinePreference,
+      budgetLevel: data.budgetLevel,
+      cookingTimeMinutes: data.cookingTimeMinutes,
+      ingredientFlexible: data.ingredientFlexible,
     }
 
-    const { workoutPlan: generatedPlan, tdee, macroTargets } = generateProgram(programInput)
+    const { workoutPlan: generatedPlan, nutritionPlan: generatedNutrition, tdee, macroTargets } = generateProgram(programInput)
 
     // Delete existing workout plan for this user (if any) before creating new one
     const existingPlan = await prisma.workoutPlan.findUnique({ where: { userId: user.id } })
@@ -172,28 +178,34 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Generate and persist a basic NutritionPlan from macros
-    // (Full meal generation handled by Person B's nutritionPlanner — this provides the macro targets)
+    // Persist NutritionPlan with generated meals
     const existingNutrition = await prisma.nutritionPlan.findUnique({ where: { userId: user.id } })
     if (existingNutrition) {
       await prisma.meal.deleteMany({ where: { nutritionPlanId: existingNutrition.id } })
       await prisma.nutritionPlan.delete({ where: { id: existingNutrition.id } })
     }
 
-    // Build sample meals based on cuisine preference and macros
-    const cuisine = data.cuisinePreference || 'Any'
-    const sampleMeals = buildSampleMeals(cuisine, macroTargets, data.budgetLevel)
-
-    await prisma.nutritionPlan.create({
+    const nutritionPlan = await prisma.nutritionPlan.create({
       data: {
         userId: user.id,
         tdee,
-        calorieTarget: macroTargets.calorieTarget,
-        proteinG: macroTargets.proteinG,
-        carbsG: macroTargets.carbsG,
-        fatG: macroTargets.fatG,
+        calorieTarget: generatedNutrition.calorieTarget,
+        proteinG: generatedNutrition.proteinG,
+        carbsG: generatedNutrition.carbsG,
+        fatG: generatedNutrition.fatG,
         meals: {
-          create: sampleMeals,
+          create: generatedNutrition.meals.map((meal) => ({
+            name: meal.name,
+            cuisine: meal.cuisine,
+            prepTimeMinutes: meal.prepTimeMinutes,
+            estimatedCostUsd: meal.estimatedCostUsd,
+            proteinG: meal.proteinG,
+            carbsG: meal.carbsG,
+            fatG: meal.fatG,
+            calories: meal.calories,
+            ingredients: JSON.stringify(meal.ingredients),
+            instructions: meal.instructions,
+          })),
         },
       },
     })
@@ -201,6 +213,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       userId: user.id,
       workoutPlanId: workoutPlan.id,
+      nutritionPlanId: nutritionPlan.id,
       tdee,
       macroTargets,
       appliedDefaults,
@@ -209,61 +222,4 @@ export async function POST(req: NextRequest) {
     console.error('[POST /api/onboarding]', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-}
-
-// ─── Sample Meal Generator ────────────────────────────────────────────────────
-
-interface MacroTargets { proteinG: number; carbsG: number; fatG: number; calorieTarget: number }
-
-function buildSampleMeals(cuisine: string, macros: MacroTargets, budget: string) {
-  const costMap: Record<string, number> = { LOW: 4, MEDIUM: 8, HIGH: 15 }
-  const cost = costMap[budget] ?? 8
-
-  // Split macros across 3 meals: 30% breakfast, 40% lunch, 30% dinner
-  const splits = [0.3, 0.4, 0.3]
-  const mealTemplates = [
-    {
-      name: cuisine === 'Asian' ? 'Egg Fried Rice Bowl' : cuisine === 'Mediterranean' ? 'Greek Yogurt & Oats' : 'Protein Oats Bowl',
-      cuisine: cuisine === 'Any' ? 'Healthy' : cuisine,
-      prepTimeMinutes: 15,
-      label: 'Breakfast',
-    },
-    {
-      name: cuisine === 'Asian' ? 'Teriyaki Chicken & Rice' : cuisine === 'Mediterranean' ? 'Grilled Chicken & Quinoa' : 'Grilled Chicken & Rice',
-      cuisine: cuisine === 'Any' ? 'American' : cuisine,
-      prepTimeMinutes: 30,
-      label: 'Lunch',
-    },
-    {
-      name: cuisine === 'Asian' ? 'Salmon Miso Bowl' : cuisine === 'Mediterranean' ? 'Baked Salmon & Veggies' : 'Salmon with Sweet Potato',
-      cuisine: cuisine === 'Any' ? 'Healthy' : cuisine,
-      prepTimeMinutes: 35,
-      label: 'Dinner',
-    },
-  ]
-
-  return mealTemplates.map((template, i) => {
-    const ratio = splits[i]
-    const proteinG = Math.round(macros.proteinG * ratio)
-    const carbsG = Math.round(macros.carbsG * ratio)
-    const fatG = Math.round(macros.fatG * ratio)
-    const calories = Math.round(proteinG * 4 + carbsG * 4 + fatG * 9)
-
-    return {
-      name: template.name,
-      cuisine: template.cuisine,
-      prepTimeMinutes: template.prepTimeMinutes,
-      estimatedCostUsd: cost,
-      proteinG,
-      carbsG,
-      fatG,
-      calories,
-      ingredients: JSON.stringify([
-        { name: 'Chicken breast', amount: 150, unit: 'g' },
-        { name: 'Brown rice', amount: 100, unit: 'g' },
-        { name: 'Olive oil', amount: 10, unit: 'ml' },
-      ]),
-      instructions: `Prepare ${template.name} following standard recipe. Season to taste.`,
-    }
-  })
 }
