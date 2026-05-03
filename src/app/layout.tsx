@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Curated Fitness App',
-  description: 'Personalized workout programs and nutrition plans tailored to your goals.',
+  title: 'Curated Fitness',
+  description: 'Your personalized fitness program',
 }
 
 export default function RootLayout({
@@ -13,7 +13,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="min-h-screen bg-[#0a0a0a] text-[#f5f5f5]">
+        {children}
+      </body>
     </html>
   )
 }

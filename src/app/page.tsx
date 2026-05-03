@@ -2,72 +2,52 @@ import Link from 'next/link'
 
 export default function Home() {
   return (
-    <main
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2rem',
-        gap: '2rem',
-      }}
-    >
-      <div style={{ textAlign: 'center', maxWidth: '600px' }}>
-        <h1 style={{ fontSize: '3rem', marginBottom: '1rem' }}>
-          Curated Fitness
-        </h1>
-        <p style={{ fontSize: '1.25rem', color: 'var(--muted)', marginBottom: '2rem' }}>
-          Personalized workout programs and nutrition plans built around your goals,
-          equipment, and lifestyle.
-        </p>
-        <Link
-          href="/onboarding"
-          style={{
-            display: 'inline-block',
-            backgroundColor: 'var(--accent)',
-            color: '#fff',
-            padding: '0.875rem 2rem',
-            borderRadius: '0.5rem',
-            fontSize: '1.125rem',
-            fontWeight: '600',
-            transition: 'background-color 0.2s',
-          }}
-        >
-          Get Started →
-        </Link>
-      </div>
-
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: '1rem',
-          maxWidth: '700px',
-          width: '100%',
-          marginTop: '1rem',
-        }}
-      >
-        {[
-          { emoji: '🏋️', label: 'Custom Workout Plans' },
-          { emoji: '🥗', label: 'Nutrition Guidance' },
-          { emoji: '📈', label: 'Progress Tracking' },
-          { emoji: '🔄', label: 'Adaptive Programming' },
-        ].map(({ emoji, label }) => (
-          <div
-            key={label}
-            style={{
-              backgroundColor: 'var(--card)',
-              border: '1px solid var(--border)',
-              borderRadius: '0.75rem',
-              padding: '1.25rem',
-              textAlign: 'center',
-            }}
-          >
-            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{emoji}</div>
-            <div style={{ fontSize: '0.9rem', color: 'var(--muted)' }}>{label}</div>
+    <main className="min-h-screen flex flex-col items-center justify-center px-6 bg-[#0a0a0a]">
+      <div className="max-w-md w-full text-center space-y-8">
+        {/* Logo */}
+        <div className="space-y-2">
+          <div className="w-16 h-16 rounded-2xl bg-[#a3e635] flex items-center justify-center mx-auto">
+            <span className="text-2xl font-black text-black">CF</span>
           </div>
-        ))}
+          <h1 className="text-4xl font-bold tracking-tight">Curated Fitness</h1>
+          <p className="text-[#a3a3a3] text-lg">
+            Your personalized program, built around your life.
+          </p>
+        </div>
+
+        {/* Features */}
+        <div className="grid grid-cols-2 gap-3 text-left">
+          {[
+            { icon: '🏋️', label: 'Custom splits' },
+            { icon: '🥗', label: 'Nutrition plans' },
+            { icon: '📈', label: 'Progress tracking' },
+            { icon: '🩹', label: 'Injury-aware' },
+          ].map((f) => (
+            <div
+              key={f.label}
+              className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-4 flex items-center gap-3"
+            >
+              <span className="text-xl">{f.icon}</span>
+              <span className="text-sm font-medium text-[#f5f5f5]">{f.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <div className="space-y-3">
+          <Link
+            href="/onboarding"
+            className="block w-full bg-[#a3e635] text-black font-bold py-4 rounded-xl text-center text-lg hover:bg-[#84cc16] transition-colors"
+          >
+            Build My Program
+          </Link>
+          <Link
+            href="/dashboard"
+            className="block w-full bg-[#1a1a1a] border border-[#2a2a2a] text-[#f5f5f5] font-medium py-4 rounded-xl text-center hover:bg-[#222222] transition-colors"
+          >
+            View Dashboard
+          </Link>
+        </div>
       </div>
     </main>
   )
