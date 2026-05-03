@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Curated Fitness',
-  description: 'Your personalized fitness program',
+  title: 'Forma — Personalized Fitness',
+  description: 'Your personalized workout and nutrition plan, built around your life.',
 }
 
 export default function RootLayout({

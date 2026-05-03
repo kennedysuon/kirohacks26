@@ -1,15 +1,13 @@
 import Link from 'next/link'
+import FormaLogo from '@/components/FormaLogo'
 
 export default function Home() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-6 bg-[#0a0a0a]">
       <div className="max-w-md w-full text-center space-y-8">
         {/* Logo */}
-        <div className="space-y-2">
-          <div className="w-16 h-16 rounded-2xl bg-[#a3e635] flex items-center justify-center mx-auto">
-            <span className="text-2xl font-black text-black">CF</span>
-          </div>
-          <h1 className="text-4xl font-bold tracking-tight">Curated Fitness</h1>
+        <div className="flex flex-col items-center space-y-3">
+          <FormaLogo size="lg" />
           <p className="text-[#a3a3a3] text-lg">
             Your personalized program, built around your life.
           </p>
