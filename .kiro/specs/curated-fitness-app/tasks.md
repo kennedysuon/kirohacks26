@@ -173,14 +173,14 @@ TypeScript throughout. Prisma + SQLite for dev. fast-check for property-based te
     - `POST`: accept `{ exerciseId, action: 'accept' | 'decline', recommendation }`; on accept, update `SessionExercise` prescription and record change in `SetLog`; on decline, retain current prescription
     - _Requirements: 14.5, 14.6_
 
-- [ ] 11. Onboarding UI, Workout UI, Session Log UI [Person A]
+- [x] 11. Onboarding UI, Workout UI, Session Log UI [Person A]
   - [x] 11.1 Create `src/components/onboarding/OnboardingWizard.tsx` — multi-step wizard shell
     - Manage step index state; render step components; show progress indicator (step N of 9)
     - Collect and accumulate form data across steps using `react-hook-form`
     - On final step, display defaults summary before submission
     - On submit, `POST /api/onboarding` and redirect to `/dashboard`
     - _Requirements: 1.1–1.11_
-  - [ ] 11.2 Create individual step components in `src/components/onboarding/steps/`
+  - [x] 11.2 Create individual step components in `src/components/onboarding/steps/`
     - `GoalStep.tsx` — goal selection (muscle gain, fat loss, strength, general fitness, sport performance)
     - `TrainingStyleStep.tsx` — bodybuilding, powerlifting, pilates/yoga
     - `SplitStep.tsx` — PPL, Arnold Split, Glute Program, Full Body, Upper/Lower; show Custom_Hybrid only for intermediate/advanced
@@ -201,7 +201,7 @@ TypeScript throughout. Prisma + SQLite for dev. fast-check for property-based te
     - Include warm-up section for beginner profiles
     - Show exercise description, cues, and expandable step-by-step instructions
     - _Requirements: 3.3, 3.7, 8.1, 8.2, 8.4, 8.5, 10.2, 10.6, 14.4_
-  - [ ] 11.5 Create `src/components/session/SessionLogger.tsx`
+  - [x] 11.5 Create `src/components/session/SessionLogger.tsx`
     - Inline set logging: exercise name, set number, reps performed, load (kg/lb toggle)
     - Prompt "completed or skipped?" when user navigates away without logging a set
     - Accept/decline overload recommendation buttons

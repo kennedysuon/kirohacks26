@@ -16,8 +16,11 @@ const TIER_RANK: Record<string, number> = {
 function loadExercises(): ExerciseDefinition[] {
   try {
     const filePath = join(process.cwd(), 'src/data/exercises.json')
-    return JSON.parse(readFileSync(filePath, 'utf-8')) as ExerciseDefinition[]
+    const raw = readFileSync(filePath, 'utf-8').trim()
+    if (!raw || raw === '[') return []
+    return JSON.parse(raw) as ExerciseDefinition[]
   } catch {
+    console.warn('exerciseLibrary: could not load exercises.json — run `node scripts/transform-exercises.js` to populate it.')
     return []
   }
 }
