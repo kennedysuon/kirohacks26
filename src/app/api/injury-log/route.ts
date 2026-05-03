@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { applyInjuryAdjustments } from '@/lib/injuryAdjustment'
-import type { GeneratedWorkoutPlan, GeneratedSession, GeneratedSessionExercise } from '@/lib/programGenerator'
+import type { GeneratedWorkoutPlan } from '@/lib/programGenerator'
 
 // ─── Validation Schema ────────────────────────────────────────────────────────
 
@@ -12,6 +12,26 @@ const InjuryLogSchema = z.object({
   severity: z.number().int().min(1).max(10),
   onsetDate: z.string().or(z.date()),
 })
+
+// ─── GET /api/injury-log?userId= ──────────────────────────────────────────────
+
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url)
+    const userId = searchParams.get('userId')
+    if (!userId) return NextResponse.json({ error: 'userId is required' }, { status: 400 })
+
+    const injuries = await prisma.injuryLog.findMany({
+      where: { userId },
+      orderBy: { onsetDate: 'desc' },
+    })
+
+    return NextResponse.json(injuries)
+  } catch (err) {
+    console.error('[GET /api/injury-log]', err)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
 
 // ─── POST /api/injury-log ─────────────────────────────────────────────────────
 
