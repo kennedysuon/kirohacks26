@@ -27,136 +27,136 @@ TypeScript throughout. Prisma + SQLite for dev. fast-check for property-based te
 
 > Owns: exercise library, TDEE/macros, program generation, substitution, injury adjustment, overload engine, onboarding API, workout/session APIs, session logging API, onboarding UI, workout UI, session log UI
 
-- [ ] 2. Exercise library JSON [Person A]
-  - [ ] 2.1 Create `src/data/exercises.json` with at least 60 exercise definitions covering all muscle groups
+- [x] 2. Exercise library JSON [Person A]
+  - [x] 2.1 Create `src/data/exercises.json` with at least 60 exercise definitions covering all muscle groups
     - Each entry must include: `id`, `name`, `primaryMuscles`, `secondaryMuscles`, `movementPattern`, `equipmentTiers` (array of `EquipmentTier` values), `contraindications`, `substitutes` (ordered list of exercise IDs), `technicalComplexity`, `supportsEccentricControl`, `cues` (3–5 points), `description`, `stepByStep`
     - Cover all equipment tiers: at least 12 bodyweight-only, 10 resistance-bands, 12 dumbbells-only, 12 home-gym, 14 full-gym exercises
     - Cover all movement patterns: horizontal push/pull, vertical push/pull, hip hinge, squat, lunge, carry, rotation, isolation
     - Tag contraindications for common impediments: `stiff_ankles`, `shoulder_impingement`, `lower_back_pain`, `knee_pain`, `wrist_pain`
     - Populate `substitutes` chains so every exercise has at least one substitute at the same or lower equipment tier
     - _Requirements: 8.1, 8.2, 9.2, 4.1, 4.2_
-  - [ ] 2.2 Create `src/lib/exerciseLibrary.ts` with typed loader and lookup helpers
+  - [x] 2.2 Create `src/lib/exerciseLibrary.ts` with typed loader and lookup helpers
     - `getExerciseById(id: string): ExerciseDefinition`
     - `filterByEquipmentTier(tier: EquipmentTier): ExerciseDefinition[]`
     - `filterByMuscleGroup(muscle: string): ExerciseDefinition[]`
     - _Requirements: 9.1, 9.2_
 
-- [ ] 3. TDEE Calculator and Macro Derivation [Person A]
-  - [ ] 3.1 Implement `src/lib/tdee.ts`
+- [x] 3. TDEE Calculator and Macro Derivation [Person A]
+  - [x] 3.1 Implement `src/lib/tdee.ts`
     - `calculateTDEE(input: BiometricInput): number` using Mifflin-St Jeor equation with activity multipliers (sedentary 1.2, lightly active 1.375, moderately active 1.55, very active 1.725, extra active 1.9)
     - Clamp age to [15, 100] and emit a warning for out-of-range inputs
     - _Requirements: 2.1_
-  - [ ]* 3.2 Write property test for TDEE determinism (Property 1)
+  - [x]* 3.2 Write property test for TDEE determinism (Property 1)
     - **Property 1: TDEE Calculation Determinism**
     - **Validates: Requirements 2.1**
     - Use `fc.record` to generate valid `BiometricInput` values; assert `calculateTDEE(x) === calculateTDEE(x)` across 100 iterations
     - Tag: `// Feature: curated-fitness-app, Property 1: TDEE Calculation Determinism`
-  - [ ] 3.3 Implement `src/lib/macros.ts`
+  - [x] 3.3 Implement `src/lib/macros.ts`
     - `deriveMacroTargets(tdee: number, goal: FitnessGoal): MacroTargets` returning `{ proteinG, carbsG, fatG, calorieTarget }`
     - Goal-specific ratios: muscle gain (protein 2.2 g/kg bodyweight, fat 25%, remainder carbs), fat loss (protein 2.4 g/kg, fat 30%, remainder carbs), strength (protein 2.0 g/kg, fat 30%, remainder carbs), general fitness / sport performance (protein 1.8 g/kg, fat 30%, remainder carbs)
     - _Requirements: 2.2, 2.3_
-  - [ ]* 3.4 Write property test for macro calorie sum (Property 2)
+  - [x]* 3.4 Write property test for macro calorie sum (Property 2)
     - **Property 2: Macro Targets Sum to TDEE Calories**
     - **Validates: Requirements 2.2, 2.3**
     - Generate random TDEE values and goals; assert `protein*4 + carbs*4 + fat*9` is within ±5 kcal of `calorieTarget`
     - Tag: `// Feature: curated-fitness-app, Property 2: Macro Targets Sum to TDEE Calories`
 
-- [ ] 4. Checkpoint A — core math verified [Person A]
+- [x] 4. Checkpoint A — core math verified [Person A]
   - Ensure all Person A tests pass before continuing.
 
-- [ ] 5. Substitution Engine [Person A]
-  - [ ] 5.1 Implement `src/lib/substitutionEngine.ts`
+- [x] 5. Substitution Engine [Person A]
+  - [x] 5.1 Implement `src/lib/substitutionEngine.ts`
     - `findSubstitute(req: SubstitutionRequest): SubstitutionResult | null`
     - Walk the `substitutes` chain of the contraindicated exercise; filter candidates by `equipmentTiers` containment and absence of the active impediment/injury tags
     - Apply positional modifications (heel-raised, box variant) before removing a movement category entirely for lower-body impediments
     - Return `{ replacement, rationale }` where `rationale` names the impediment and explains the alternative
     - Return `null` and log a gap when no valid substitute exists within the equipment tier
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.6, 5.1, 5.2_
-  - [ ]* 5.2 Write property test for substitution equipment safety (Property 4)
+  - [x]* 5.2 Write property test for substitution equipment safety (Property 4)
     - **Property 4: Substitution Preserves Equipment Compatibility**
     - **Validates: Requirements 4.1, 4.6, 10.7**
     - Generate random `SubstitutionRequest` values; assert the returned replacement exercise's `equipmentTiers` is a subset of or equal to the user's tier
     - Tag: `// Feature: curated-fitness-app, Property 4: Substitution Preserves Equipment Compatibility`
-  - [ ]* 5.3 Write property test for injury area avoidance (Property 5)
+  - [x]* 5.3 Write property test for injury area avoidance (Property 5)
     - **Property 5: Injury Substitution Avoids Affected Area**
     - **Validates: Requirements 5.1, 5.2**
     - Generate random active injury logs and exercise lists; assert no exercise in the adjusted plan loads the injured body area
     - Tag: `// Feature: curated-fitness-app, Property 5: Injury Substitution Avoids Affected Area`
 
-- [ ] 6. Program Generator — workout plan engine [Person A]
-  - [ ] 6.1 Implement `src/lib/splitTemplates.ts`
+- [x] 6. Program Generator — workout plan engine [Person A]
+  - [x] 6.1 Implement `src/lib/splitTemplates.ts`
     - Define session templates for each `SplitType`: PPL (3 or 6 days), Arnold Split (6 days), Glute Program (3–4 days), Full Body (3 days), Upper/Lower (4 days), Custom_Hybrid (user-defined combination, intermediate/advanced only)
     - Each template specifies session names and target muscle groups per day
     - _Requirements: 1.3, 3.1, 3.2_
-  - [ ] 6.2 Implement `src/lib/programGenerator.ts` — core workout plan generation
+  - [x] 6.2 Implement `src/lib/programGenerator.ts` — core workout plan generation
     - `generateWorkoutPlan(input: ProgramGeneratorInput): WorkoutPlan`
     - Steps: select split template → filter exercise library by `EquipmentTier` → assign exercises per session (respecting `technicalComplexity` for beginners) → apply `SubstitutionEngine` for impediments → apply tempo prescriptions when goal is `MUSCLE_GAIN` → reduce volume on sport-adjacent days → add warm-up for beginners
     - For `MUSCLE_GAIN`: assign `Tempo_Prescription` (e.g., 3-1-2-0) to each exercise; calculate `tutPerSet = (e+p1+c+p2) * repsMin`; ensure at least one exercise per session has eccentric ≥ 3 s; include at least one exercise per muscle group per week with eccentric ≥ 3 s
     - For intermediate/advanced `MUSCLE_GAIN`: include intensification techniques (drop sets, rest-pause) in at least one exercise per session
     - Include sport-specific accessory work when `sportActivity` is set
     - _Requirements: 3.1–3.9, 8.3, 8.4, 9.1–9.9, 10.1–10.5_
-  - [ ]* 6.3 Write property test for equipment tier containment (Property 3)
+  - [x]* 6.3 Write property test for equipment tier containment (Property 3)
     - **Property 3: Equipment Tier Containment**
     - **Validates: Requirements 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7**
     - Generate random user profiles with varying equipment tiers; assert every exercise in the generated plan has an `equipmentTiers` value ≤ the user's declared tier
     - Tag: `// Feature: curated-fitness-app, Property 3: Equipment Tier Containment`
 
-- [ ] 7. TUT Calculator and tempo helpers [Person A]
-  - [ ] 7.1 Implement `src/lib/tut.ts`
+- [x] 7. TUT Calculator and tempo helpers [Person A]
+  - [x] 7.1 Implement `src/lib/tut.ts`
     - `calculateTUT(eccentric: number, pause1: number, concentric: number, pause2: number, reps: number): number` — returns `(e+p1+c+p2) * reps`
     - `validateTUTRange(tut: number): boolean` — returns true if 40 ≤ tut ≤ 70 (hypertrophy target range)
     - _Requirements: 3.7, 3.8, 10.6_
-  - [ ]* 7.2 Write property test for TUT formula correctness (Property 7)
+  - [x]* 7.2 Write property test for TUT formula correctness (Property 7)
     - **Property 7: Tempo TUT Calculation Correctness**
     - **Validates: Requirements 10.6**
     - Generate random tempo values (e, p1, c, p2 each 0–5 s) and rep counts (1–20); assert `calculateTUT(e,p1,c,p2,r) === (e+p1+c+p2)*r`
     - Tag: `// Feature: curated-fitness-app, Property 7: Tempo TUT Calculation Correctness`
 
-- [ ] 8. Full Program Generator — wiring TDEE + workout [Person A]
-  - [ ] 8.1 Implement `generateProgram(input: ProgramGeneratorInput): ProgramGeneratorOutput` in `src/lib/programGenerator.ts`
+- [x] 8. Full Program Generator — wiring TDEE + workout [Person A]
+  - [x] 8.1 Implement `generateProgram(input: ProgramGeneratorInput): ProgramGeneratorOutput` in `src/lib/programGenerator.ts`
     - Orchestrate: `calculateTDEE` → `deriveMacroTargets` → `generateWorkoutPlan`
     - Return `{ workoutPlan, tdee, macroTargets }` (nutritionPlan wired in Task 9 by Person B)
     - _Requirements: 1.8, 2.1, 2.2, 3.1_
-  - [ ] 8.2 Implement volume reduction for injury logs in `src/lib/injuryAdjustment.ts`
+  - [x] 8.2 Implement volume reduction for injury logs in `src/lib/injuryAdjustment.ts`
     - `applyInjuryAdjustments(plan: WorkoutPlan, injuries: InjuryLog[]): WorkoutPlan`
     - Identify all exercises loading the injured body area; replace via `SubstitutionEngine`; reduce total weekly sets proportionally, capped at 40% reduction
     - Mark each modified session with `injuryAdjustmentActive: true`
     - _Requirements: 5.1–5.6_
-  - [ ]* 8.3 Write property test for volume reduction bound (Property 6)
+  - [x]* 8.3 Write property test for volume reduction bound (Property 6)
     - **Property 6: Volume Reduction Bound**
     - **Validates: Requirements 5.3**
     - Generate random workout plans and injury logs; assert adjusted weekly set count ≥ 60% of original
     - Tag: `// Feature: curated-fitness-app, Property 6: Volume Reduction Bound`
 
-- [ ] 9. Progressive Overload Engine [Person A]
-  - [ ] 9.1 Implement `src/lib/progressiveOverloadEngine.ts`
+- [x] 9. Progressive Overload Engine [Person A]
+  - [x] 9.1 Implement `src/lib/progressiveOverloadEngine.ts`
     - `analyseOverload(analysis: OverloadAnalysis): OverloadRecommendation`
     - Trigger `increase_load` when all prescribed sets and reps completed at current load in 2 consecutive sessions
     - Trigger `deload` when logged performance decreases across 2 consecutive sessions
     - Trigger `plateau_flag` when no load or volume increase across 3 or more consecutive sessions
     - Trigger `increase_reps` or `add_set` as alternatives to load increase based on rep range headroom
     - _Requirements: 14.1–14.7, 15.5_
-  - [ ]* 9.2 Write property test for overload trigger consistency (Property 8)
+  - [x]* 9.2 Write property test for overload trigger consistency (Property 8)
     - **Property 8: Overload Recommendation Trigger Consistency**
     - **Validates: Requirements 14.1, 14.2**
     - Generate random session histories where the last 2 sessions show full completion at current load; assert `analyseOverload` returns a non-null recommendation
     - Tag: `// Feature: curated-fitness-app, Property 8: Overload Recommendation Trigger Consistency`
-  - [ ]* 9.3 Write property test for overload round-trip (Property 9)
+  - [x]* 9.3 Write property test for overload round-trip (Property 9)
     - **Property 9: Overload Recommendation Round-Trip**
     - **Validates: Requirements 14.5**
     - Generate random `OverloadRecommendation` values; accept them via the acceptance handler; assert the stored prescription matches the recommendation
     - Tag: `// Feature: curated-fitness-app, Property 9: Overload Recommendation Round-Trip`
 
-- [ ] 10. API routes — onboarding, workout plan, session logging, injury log [Person A]
-  - [ ] 10.1 Create `src/app/api/onboarding/route.ts`
+- [x] 10. API routes — onboarding, workout plan, session logging, injury log [Person A]
+  - [x] 10.1 Create `src/app/api/onboarding/route.ts`
     - `POST /api/onboarding`: validate body with Zod against `UserProfile` shape; upsert `User` + `UserProfile`; call `generateProgram`; persist `WorkoutPlan` + `NutritionPlan`; return `{ userId, workoutPlanId, nutritionPlanId }`
     - Apply defaults for skipped optional fields; include `appliedDefaults` array in response
     - _Requirements: 1.8, 1.9_
-  - [ ] 10.2 Create `src/app/api/workout-plan/route.ts` and `src/app/api/workout-plan/session/[id]/route.ts`
+  - [x] 10.2 Create `src/app/api/workout-plan/route.ts` and `src/app/api/workout-plan/session/[id]/route.ts`
     - `GET /api/workout-plan`: return full `WorkoutPlan` with sessions and exercises for the authenticated user
     - `GET /api/workout-plan/session/:id`: return single session with `OverloadRecommendation` for each exercise (from `Progressive_Overload_Engine`)
     - _Requirements: 3.1, 14.4_
-  - [ ] 10.3 Create `src/app/api/session-log/route.ts`
+  - [x] 10.3 Create `src/app/api/session-log/route.ts`
     - `POST /api/session-log`: validate body; persist `SessionLog` + `SetLog` entries; set `lockedAt = createdAt + 24h`
     - `PATCH /api/session-log/:id/set/:setId`: accept edit only if `Date.now() < sessionLog.lockedAt`; return 403 with lock timestamp if window has closed
     - _Requirements: 11.1–11.6_
@@ -165,11 +165,11 @@ TypeScript throughout. Prisma + SQLite for dev. fast-check for property-based te
     - **Validates: Requirements 11.3**
     - Generate random `SessionLog` creation times and edit attempt times; assert edits within 24 h are accepted and edits after 24 h are rejected
     - Tag: `// Feature: curated-fitness-app, Property 12: Session Log Edit Window`
-  - [ ] 10.5 Create `src/app/api/injury-log/route.ts`
+  - [x] 10.5 Create `src/app/api/injury-log/route.ts`
     - `POST /api/injury-log`: persist `InjuryLog`; call `applyInjuryAdjustments`; persist updated `WorkoutPlan`
     - `PATCH /api/injury-log/:id/resolve`: set `resolvedDate` and `active = false`; trigger 1-week gradual return-to-training restoration of original exercises
     - _Requirements: 5.1–5.6_
-  - [ ] 10.6 Create `src/app/api/workout-plan/session/[id]/overload/route.ts`
+  - [x] 10.6 Create `src/app/api/workout-plan/session/[id]/overload/route.ts`
     - `POST`: accept `{ exerciseId, action: 'accept' | 'decline', recommendation }`; on accept, update `SessionExercise` prescription and record change in `SetLog`; on decline, retain current prescription
     - _Requirements: 14.5, 14.6_
 
