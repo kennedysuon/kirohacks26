@@ -174,7 +174,7 @@ TypeScript throughout. Prisma + SQLite for dev. fast-check for property-based te
     - _Requirements: 14.5, 14.6_
 
 - [ ] 11. Onboarding UI, Workout UI, Session Log UI [Person A]
-  - [ ] 11.1 Create `src/components/onboarding/OnboardingWizard.tsx` — multi-step wizard shell
+  - [x] 11.1 Create `src/components/onboarding/OnboardingWizard.tsx` — multi-step wizard shell
     - Manage step index state; render step components; show progress indicator (step N of 9)
     - Collect and accumulate form data across steps using `react-hook-form`
     - On final step, display defaults summary before submission
@@ -191,11 +191,11 @@ TypeScript throughout. Prisma + SQLite for dev. fast-check for property-based te
     - `NutritionPrefsStep.tsx` — cuisine, budget, cooking time, ingredient flexibility
     - `EquipmentStep.tsx` — Full_Gym, Home_Gym, Dumbbells_Only, Resistance_Bands, Bodyweight_Only
     - _Requirements: 1.1–1.11_
-  - [ ] 11.3 Create `src/app/workout/page.tsx` — Workout_Plan overview
+  - [x] 11.3 Create `src/app/workout/page.tsx` — Workout_Plan overview
     - Fetch and display the weekly session schedule
     - Show injury adjustment indicator on modified sessions
     - _Requirements: 3.1, 3.2, 5.6_
-  - [ ] 11.4 Create `src/app/workout/session/[id]/page.tsx` — active session view
+  - [x] 11.4 Create `src/app/workout/session/[id]/page.tsx` — active session view
     - Display session exercises with sets, reps, RPE, tempo prescription, and TUT per set
     - Show `OverloadRecommendation` banner per exercise when present
     - Include warm-up section for beginner profiles
@@ -206,7 +206,7 @@ TypeScript throughout. Prisma + SQLite for dev. fast-check for property-based te
     - Prompt "completed or skipped?" when user navigates away without logging a set
     - Accept/decline overload recommendation buttons
     - _Requirements: 11.1, 11.4, 14.4, 14.5, 14.6_
-  - [ ] 11.6 Create `src/app/logs/page.tsx` and `src/app/logs/[sessionLogId]/page.tsx`
+  - [x] 11.6 Create `src/app/logs/page.tsx` and `src/app/logs/[sessionLogId]/page.tsx`
     - List view: chronological list of past sessions with date and session name
     - Detail view: all recorded sets, reps, and loads alongside originally prescribed values; show edit button (disabled with lock message after 24 h)
     - _Requirements: 11.2, 11.3, 11.6_
