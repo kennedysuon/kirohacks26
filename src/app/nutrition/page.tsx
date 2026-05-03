@@ -1,191 +1,611 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import BottomNav from '@/components/BottomNav'
+import Link from 'next/link'
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface Ingredient {
+  name: string
+  amount: string
+  unit: string
+}
 
 interface Meal {
   id: string
   name: string
-  cuisine?: string
+  cuisine: string | null
   prepTimeMinutes: number
   estimatedCostUsd: number
   proteinG: number
   carbsG: number
   fatG: number
   calories: number
-  ingredients: string
+  ingredients: Ingredient[]
+  instructions: string
+}
+
+interface MacroTargets {
+  proteinG: number
+  carbsG: number
+  fatG: number
+}
+
+interface DailyTotals {
+  calories: number
+  proteinG: number
+  carbsG: number
+  fatG: number
 }
 
 interface NutritionPlan {
   id: string
+  userId: string
   tdee: number
   calorieTarget: number
-  proteinG: number
-  carbsG: number
-  fatG: number
+  macroTargets: MacroTargets
   meals: Meal[]
+  dailyTotals: DailyTotals
 }
 
-const MEAL_LABELS = ['Breakfast', 'Lunch', 'Dinner', 'Snack']
+// ─── Ingredient substitution lookup ──────────────────────────────────────────
 
-const BUDGET_LABEL: Record<string, string> = {
-  low: 'Low',
-  medium: 'Medium',
-  high: 'High',
+const SUBSTITUTIONS: Record<string, string> = {
+  'chicken breast': 'turkey breast',
+  'chicken': 'turkey breast',
+  'rice': 'quinoa',
+  'white rice': 'quinoa',
+  'brown rice': 'quinoa',
+  'olive oil': 'avocado oil',
+  'butter': 'coconut oil',
+  'milk': 'almond milk',
+  'whole milk': 'almond milk',
+  'beef': 'bison',
+  'ground beef': 'ground turkey',
+  'pasta': 'zucchini noodles',
+  'bread': 'lettuce wrap',
+  'flour': 'almond flour',
+  'sugar': 'stevia',
+  'cream': 'coconut cream',
+  'sour cream': 'greek yogurt',
+  'mayonnaise': 'avocado',
+  'peanut butter': 'almond butter',
+  'soy sauce': 'coconut aminos',
+  'cheese': 'nutritional yeast',
+  'egg': 'flax egg',
+  'eggs': 'flax egg',
+  'salmon': 'tilapia',
+  'tuna': 'sardines',
+  'shrimp': 'tofu',
+  'tofu': 'tempeh',
+  'potato': 'sweet potato',
+  'potatoes': 'sweet potato',
+  'sweet potato': 'butternut squash',
+  'oats': 'quinoa flakes',
+  'yogurt': 'coconut yogurt',
+  'greek yogurt': 'coconut yogurt',
 }
 
-function getBudgetLabel(cost: number): string {
-  if (cost < 5) return 'Low'
-  if (cost < 12) return 'Medium'
-  return 'High'
+function findSubstitute(ingredientName: string): string | null {
+  const lower = ingredientName.toLowerCase().trim()
+  if (SUBSTITUTIONS[lower]) return SUBSTITUTIONS[lower]
+  // partial match
+  for (const [key, value] of Object.entries(SUBSTITUTIONS)) {
+    if (lower.includes(key)) return value
+  }
+  return null
 }
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+interface MacroBarProps {
+  label: string
+  actual: number
+  target: number
+  color: string
+  unit?: string
+}
+
+function MacroBar({ label, actual, target, color, unit = 'g' }: MacroBarProps) {
+  const pct = Math.min(100, target > 0 ? (actual / target) * 100 : 0)
+  return (
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          marginBottom: '0.35rem',
+          fontSize: '0.85rem',
+        }}
+      >
+        <span style={{ fontWeight: 600 }}>{label}</span>
+        <span style={{ color: 'var(--muted)' }}>
+          {actual}{unit} / {target}{unit}
+        </span>
+      </div>
+      <div
+        style={{
+          height: '8px',
+          borderRadius: '4px',
+          backgroundColor: 'var(--border)',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            height: '100%',
+            width: `${pct}%`,
+            backgroundColor: color,
+            borderRadius: '4px',
+            transition: 'width 0.4s ease',
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
+interface IngredientRowProps {
+  ingredient: Ingredient
+}
+
+function IngredientRow({ ingredient }: IngredientRowProps) {
+  const [unavailable, setUnavailable] = useState(false)
+  const substitute = unavailable ? findSubstitute(ingredient.name) : null
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '0.75rem',
+        padding: '0.4rem 0',
+        borderBottom: '1px solid var(--border)',
+      }}
+    >
+      <div style={{ flex: 1 }}>
+        <span
+          style={{
+            textDecoration: unavailable ? 'line-through' : 'none',
+            color: unavailable ? 'var(--muted)' : 'var(--foreground)',
+            fontSize: '0.9rem',
+          }}
+        >
+          {ingredient.amount} {ingredient.unit} {ingredient.name}
+        </span>
+        {unavailable && (
+          <div
+            style={{
+              marginTop: '0.25rem',
+              fontSize: '0.82rem',
+              color: substitute ? '#22c55e' : 'var(--muted)',
+            }}
+          >
+            {substitute ? `→ Substitute: ${substitute}` : 'No substitute found'}
+          </div>
+        )}
+      </div>
+      <button
+        onClick={() => setUnavailable((v) => !v)}
+        style={{
+          flexShrink: 0,
+          fontSize: '0.75rem',
+          padding: '0.2rem 0.5rem',
+          borderRadius: '0.25rem',
+          border: `1px solid ${unavailable ? '#22c55e' : 'var(--border)'}`,
+          backgroundColor: 'transparent',
+          color: unavailable ? '#22c55e' : 'var(--muted)',
+          cursor: 'pointer',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {unavailable ? 'Restore' : 'Mark unavailable'}
+      </button>
+    </div>
+  )
+}
+
+interface MealCardProps {
+  meal: Meal
+}
+
+function MealCard({ meal }: MealCardProps) {
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div
+      style={{
+        backgroundColor: 'var(--card)',
+        border: '1px solid var(--border)',
+        borderRadius: '0.75rem',
+        padding: '1.25rem',
+        marginBottom: '1rem',
+      }}
+    >
+      {/* Header row */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: '0.75rem',
+          marginBottom: '0.75rem',
+          flexWrap: 'wrap',
+        }}
+      >
+        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>
+          {meal.name}
+        </h3>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {meal.cuisine && (
+            <span
+              style={{
+                fontSize: '0.75rem',
+                padding: '0.2rem 0.6rem',
+                borderRadius: '999px',
+                backgroundColor: 'var(--border)',
+                color: 'var(--foreground)',
+              }}
+            >
+              {meal.cuisine}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Meta row */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '1rem',
+          fontSize: '0.85rem',
+          color: 'var(--muted)',
+          marginBottom: '0.75rem',
+          flexWrap: 'wrap',
+        }}
+      >
+        <span>⏱ {meal.prepTimeMinutes} min</span>
+        <span>💰 ${meal.estimatedCostUsd.toFixed(2)}</span>
+      </div>
+
+      {/* Macro row */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '1rem',
+          fontSize: '0.85rem',
+          flexWrap: 'wrap',
+          padding: '0.6rem 0.75rem',
+          backgroundColor: 'var(--background)',
+          borderRadius: '0.5rem',
+          marginBottom: '0.75rem',
+        }}
+      >
+        <span>
+          <span style={{ color: '#3b82f6', fontWeight: 600 }}>P:</span>{' '}
+          {meal.proteinG}g
+        </span>
+        <span>
+          <span style={{ color: '#22c55e', fontWeight: 600 }}>C:</span>{' '}
+          {meal.carbsG}g
+        </span>
+        <span>
+          <span style={{ color: '#f97316', fontWeight: 600 }}>F:</span>{' '}
+          {meal.fatG}g
+        </span>
+        <span style={{ color: 'var(--muted)' }}>{meal.calories} kcal</span>
+      </div>
+
+      {/* Ingredients toggle */}
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        style={{
+          background: 'none',
+          border: 'none',
+          color: 'var(--accent)',
+          cursor: 'pointer',
+          fontSize: '0.85rem',
+          padding: 0,
+          marginBottom: expanded ? '0.75rem' : 0,
+        }}
+      >
+        {expanded ? '▲ Hide ingredients' : '▼ Show ingredients'}
+      </button>
+
+      {expanded && (
+        <div>
+          {Array.isArray(meal.ingredients) && meal.ingredients.length > 0 ? (
+            meal.ingredients.map((ing, idx) => (
+              <IngredientRow key={`${ing.name}-${idx}`} ingredient={ing} />
+            ))
+          ) : (
+            <p style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>
+              No ingredient data available.
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Totals footer ────────────────────────────────────────────────────────────
+
+interface TotalsFooterProps {
+  totals: DailyTotals
+  targets: MacroTargets
+  calorieTarget: number
+}
+
+function withinTen(actual: number, target: number): boolean {
+  if (target === 0) return actual === 0
+  return Math.abs(actual - target) / target <= 0.1
+}
+
+function TotalsFooter({ totals, targets, calorieTarget }: TotalsFooterProps) {
+  const rows: Array<{ label: string; actual: number; target: number; unit: string }> = [
+    { label: 'Calories', actual: totals.calories, target: calorieTarget, unit: 'kcal' },
+    { label: 'Protein', actual: totals.proteinG, target: targets.proteinG, unit: 'g' },
+    { label: 'Carbs', actual: totals.carbsG, target: targets.carbsG, unit: 'g' },
+    { label: 'Fat', actual: totals.fatG, target: targets.fatG, unit: 'g' },
+  ]
+
+  return (
+    <div
+      style={{
+        backgroundColor: 'var(--card)',
+        border: '1px solid var(--border)',
+        borderRadius: '0.75rem',
+        padding: '1.25rem',
+        marginTop: '1.5rem',
+      }}
+    >
+      <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1rem' }}>
+        Daily Totals
+      </h2>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+          gap: '0.75rem',
+        }}
+      >
+        {rows.map(({ label, actual, target, unit }) => {
+          const ok = withinTen(actual, target)
+          return (
+            <div
+              key={label}
+              style={{
+                backgroundColor: 'var(--background)',
+                borderRadius: '0.5rem',
+                padding: '0.75rem',
+                textAlign: 'center',
+              }}
+            >
+              <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>
+                {label}
+              </div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>
+                {actual}
+                <span style={{ fontSize: '0.75rem', color: 'var(--muted)', marginLeft: '2px' }}>
+                  {unit}
+                </span>
+              </div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: '0.15rem' }}>
+                target: {target} {unit}
+              </div>
+              <div style={{ fontSize: '1rem', marginTop: '0.35rem' }}>
+                {ok ? '✅' : '⚠️'}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function NutritionPage() {
   const [plan, setPlan] = useState<NutritionPlan | null>(null)
   const [loading, setLoading] = useState(true)
-  const [substituting, setSubstituting] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [notFound, setNotFound] = useState(false)
 
   useEffect(() => {
-    const userId = localStorage.getItem('userId')
-    if (!userId) { setLoading(false); return }
-    fetch(`/api/nutrition-plan?userId=${userId}`)
-      .then((r) => r.json())
-      .then((data) => { if (!data.error) setPlan(data) })
+    const userId =
+      (typeof window !== 'undefined' && localStorage.getItem('userId')) ||
+      'demo-user'
+
+    fetch(`/api/nutrition-plan?userId=${encodeURIComponent(userId)}`)
+      .then(async (res) => {
+        if (res.status === 404) {
+          setNotFound(true)
+          return
+        }
+        if (!res.ok) {
+          throw new Error(`Server error: ${res.status}`)
+        }
+        const data: NutritionPlan = await res.json()
+        setPlan(data)
+      })
+      .catch((err: Error) => {
+        setError(err.message || 'Failed to load nutrition plan.')
+      })
       .finally(() => setLoading(false))
   }, [])
 
+  // ── Loading ──
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#111111] flex items-center justify-center">
-        <div className="text-[#737373] text-sm">Loading nutrition plan...</div>
-      </div>
+      <main
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <p style={{ color: 'var(--muted)', fontSize: '1.1rem' }}>
+          Loading your nutrition plan…
+        </p>
+      </main>
     )
   }
 
-  // Macro percentages for the bar
-  const totalKcal = plan ? plan.proteinG * 4 + plan.carbsG * 4 + plan.fatG * 9 : 1
-  const proteinPct = plan ? Math.round((plan.proteinG * 4 / totalKcal) * 100) : 30
-  const carbsPct = plan ? Math.round((plan.carbsG * 4 / totalKcal) * 100) : 45
-  const fatPct = plan ? Math.round((plan.fatG * 9 / totalKcal) * 100) : 25
+  // ── Error ──
+  if (error) {
+    return (
+      <main
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '1rem',
+          padding: '2rem',
+        }}
+      >
+        <p style={{ color: '#ef4444', fontSize: '1.1rem' }}>⚠️ {error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          style={{
+            backgroundColor: 'var(--accent)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '0.5rem',
+            padding: '0.6rem 1.25rem',
+            cursor: 'pointer',
+            fontSize: '0.95rem',
+          }}
+        >
+          Retry
+        </button>
+      </main>
+    )
+  }
 
-  const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  // ── Not found ──
+  if (notFound || !plan) {
+    return (
+      <main
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '1rem',
+          padding: '2rem',
+          textAlign: 'center',
+        }}
+      >
+        <div style={{ fontSize: '3rem' }}>🥗</div>
+        <h1 style={{ fontSize: '1.5rem' }}>No nutrition plan found</h1>
+        <p style={{ color: 'var(--muted)', maxWidth: '400px' }}>
+          Complete onboarding to generate your plan.
+        </p>
+        <Link
+          href="/"
+          style={{
+            display: 'inline-block',
+            backgroundColor: 'var(--accent)',
+            color: '#fff',
+            padding: '0.75rem 1.5rem',
+            borderRadius: '0.5rem',
+            fontWeight: 600,
+            marginTop: '0.5rem',
+          }}
+        >
+          Go to Home
+        </Link>
+      </main>
+    )
+  }
+
+  const { calorieTarget, macroTargets, meals, dailyTotals } = plan
 
   return (
-    <div className="min-h-screen bg-[#111111] pb-20">
-      {/* Header */}
-      <div className="px-6 pt-8 pb-4">
-        <h1 className="text-xl font-bold text-white">Nutrition Plan</h1>
-        <p className="text-sm text-[#737373] mt-0.5">Daily targets • {today}</p>
+    <main
+      style={{
+        maxWidth: '760px',
+        margin: '0 auto',
+        padding: '2rem 1rem',
+      }}
+    >
+      {/* Page title */}
+      <h1 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '1.5rem' }}>
+        🥗 Nutrition Plan
+      </h1>
+
+      {/* ── Macro targets header card ── */}
+      <div
+        style={{
+          backgroundColor: 'var(--card)',
+          border: '1px solid var(--border)',
+          borderRadius: '0.75rem',
+          padding: '1.5rem',
+          marginBottom: '2rem',
+        }}
+      >
+        <div style={{ marginBottom: '1.25rem' }}>
+          <div style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>
+            Daily Calorie Target
+          </div>
+          <div style={{ fontSize: '2.5rem', fontWeight: 800, lineHeight: 1 }}>
+            {calorieTarget}
+            <span style={{ fontSize: '1rem', color: 'var(--muted)', marginLeft: '0.4rem', fontWeight: 400 }}>
+              kcal
+            </span>
+          </div>
+          {plan.tdee > 0 && (
+            <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '0.25rem' }}>
+              TDEE: {plan.tdee} kcal
+            </div>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
+          <MacroBar
+            label="Protein"
+            actual={dailyTotals.proteinG}
+            target={macroTargets.proteinG}
+            color="#3b82f6"
+          />
+          <MacroBar
+            label="Carbs"
+            actual={dailyTotals.carbsG}
+            target={macroTargets.carbsG}
+            color="#22c55e"
+          />
+          <MacroBar
+            label="Fat"
+            actual={dailyTotals.fatG}
+            target={macroTargets.fatG}
+            color="#f97316"
+          />
+        </div>
       </div>
 
-      {plan ? (
-        <>
-          {/* Calorie target */}
-          <div className="px-6 mb-5">
-            <div className="text-5xl font-bold text-white mb-1">
-              {plan.calorieTarget.toLocaleString()}
-            </div>
-            <div className="text-sm text-[#737373] mb-4">calories / day</div>
+      {/* ── Meal list ── */}
+      <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1rem' }}>
+        Today&apos;s Meals
+      </h2>
 
-            {/* Macro bar */}
-            <div className="h-2 rounded-full overflow-hidden flex mb-3">
-              <div className="bg-[#3b82f6]" style={{ width: `${proteinPct}%` }} />
-              <div className="bg-[#eab308]" style={{ width: `${carbsPct}%` }} />
-              <div className="bg-[#ef4444]" style={{ width: `${fatPct}%` }} />
-            </div>
-
-            {/* Macro legend */}
-            <div className="flex items-center gap-4 text-xs text-[#737373]">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#3b82f6]" />
-                P: {plan.proteinG}g ({proteinPct}%)
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#eab308]" />
-                C: {plan.carbsG}g ({carbsPct}%)
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#ef4444]" />
-                F: {plan.fatG}g ({fatPct}%)
-              </span>
-            </div>
-          </div>
-
-          {/* Meals */}
-          <div className="px-6 space-y-3">
-            {plan.meals.map((meal, i) => {
-              let ingredients: Array<{ name: string }> = []
-              try { ingredients = JSON.parse(meal.ingredients) } catch {}
-
-              return (
-                <div
-                  key={meal.id}
-                  className="bg-[#1c1c1c] border border-[#2a2a2a] rounded-2xl overflow-hidden"
-                >
-                  <div className="px-5 py-4">
-                    <div className="text-xs text-[#737373] mb-1">{MEAL_LABELS[i] || 'Meal'}</div>
-                    <h3 className="font-bold text-white text-base mb-2">{meal.name}</h3>
-
-                    {/* Tags */}
-                    <div className="flex items-center gap-2 mb-3 flex-wrap">
-                      {meal.cuisine && (
-                        <span className="text-xs text-[#a3a3a3] bg-[#2a2a2a] px-2.5 py-1 rounded-full">
-                          {meal.cuisine}
-                        </span>
-                      )}
-                      <span className="text-xs text-[#a3a3a3] bg-[#2a2a2a] px-2.5 py-1 rounded-full">
-                        {meal.prepTimeMinutes} min
-                      </span>
-                      <span className="text-xs text-[#a3a3a3] bg-[#2a2a2a] px-2.5 py-1 rounded-full">
-                        {getBudgetLabel(meal.estimatedCostUsd)}
-                      </span>
-                    </div>
-
-                    {/* Macros */}
-                    <div className="flex items-center gap-4">
-                      <div>
-                        <div className="text-xs text-[#737373]">P</div>
-                        <div className="text-sm font-semibold text-white">{meal.proteinG}g</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-[#737373]">C</div>
-                        <div className="text-sm font-semibold text-white">{meal.carbsG}g</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-[#737373]">F</div>
-                        <div className="text-sm font-semibold text-white">{meal.fatG}g</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Ingredient substitution rows */}
-                  {ingredients.slice(0, 1).map((ing, j) => (
-                    <div
-                      key={j}
-                      className="border-t border-[#f59e0b]/20 bg-[#f59e0b]/5 px-5 py-3 flex items-center justify-between"
-                    >
-                      <span className="text-xs text-[#f59e0b]">{ing.name} unavailable</span>
-                      <button
-                        onClick={() => setSubstituting(meal.id)}
-                        className="text-xs font-semibold text-[#f59e0b] bg-[#f59e0b]/10 border border-[#f59e0b]/30 px-3 py-1.5 rounded-lg hover:bg-[#f59e0b]/20 transition-colors"
-                      >
-                        Substitute
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )
-            })}
-          </div>
-        </>
+      {meals.length === 0 ? (
+        <p style={{ color: 'var(--muted)' }}>No meals in your plan yet.</p>
       ) : (
-        <div className="px-6 py-16 text-center">
-          <p className="text-[#737373] text-sm">No nutrition plan found.</p>
-          <p className="text-[#525252] text-xs mt-1">Complete onboarding to generate your plan.</p>
-        </div>
+        meals.map((meal) => <MealCard key={meal.id} meal={meal} />)
       )}
 
-      <BottomNav />
-    </div>
+      {/* ── Daily totals footer ── */}
+      <TotalsFooter
+        totals={dailyTotals}
+        targets={macroTargets}
+        calorieTarget={calorieTarget}
+      />
+    </main>
   )
 }

@@ -248,7 +248,7 @@ The injury resolution handler (`PATCH /api/injury-log/:id/resolve`) schedules a 
 
 ---
 
-## Task 13 — Nutrition Planner `[ ]`
+## Task 13 — Nutrition Planner `[x]`
 
 **Files created:**
 - `src/lib/nutritionPlanner.ts`
@@ -267,13 +267,13 @@ The injury resolution handler (`PATCH /api/injury-log/:id/resolve`) schedules a 
 
 ---
 
-## Task 14 — Checkpoint B `[ ]`
+## Task 14 — Checkpoint B `[x]`
 
 Run all Person B tests and confirm they pass before continuing. No new files.
 
 ---
 
-## Task 15 — API Routes (Nutrition & Progress Vertical) `[ ]`
+## Task 15 — API Routes (Nutrition & Progress Vertical) `[x]`
 
 **Files created:**
 - `src/app/api/nutrition-plan/route.ts`
@@ -290,7 +290,7 @@ Run all Person B tests and confirm they pass before continuing. No new files.
 
 ---
 
-## Task 16 — Nutrition UI, Body Metrics UI, Progress Dashboard `[ ]`
+## Task 16 — Nutrition UI, Body Metrics UI, Progress Dashboard `[x]`
 
 **Files created:**
 - `src/app/nutrition/page.tsx`
@@ -317,7 +317,7 @@ The four chart components all use **Recharts**:
 
 ---
 
-## Task 17 — Wiring (Nutrition & Progress Vertical) `[ ]`
+## Task 17 — Wiring (Nutrition & Progress Vertical) `[x]`
 
 **Files modified/created:**
 - `src/app/api/body-metrics/route.ts` (extended)
@@ -327,11 +327,55 @@ The four chart components all use **Recharts**:
 
 **How it works:**
 
-TDEE recalculation is triggered inside the `POST /api/body-metrics` handler after the entry is saved. It calls `calculateTDEE` with the new weight, then `deriveMacroTargets`, and updates the `NutritionPlan` in the database if the calorie target shifts.
+### 17.1 — TDEE Recalculation on Body Metrics Submission
 
-Weight trend deviation is computed in `GET /api/progress`. The 2-week linear regression result is compared against the expected direction for the user's goal (e.g. gaining for `MUSCLE_GAIN`, losing for `FAT_LOSS`). A plain-English `trendAlert` string is included in the response when the trend is off-track.
+TDEE recalculation is triggered inside the `POST /api/body-metrics` handler after the entry is saved. The handler:
+1. Persists the new `BodyMetricsLog` entry with the updated weight and optional measurements
+2. Calls `calculateTDEE` with the new weight using the Mifflin-St Jeor equation
+3. Calls `deriveMacroTargets` to compute new protein/carb/fat targets based on the user's fitness goal
+4. Compares the new calorie target to the existing one
+5. Updates the `NutritionPlan` in the database **only if** the calorie target shifts by more than 50 kcal (prevents unnecessary updates for minor fluctuations)
+6. Returns the updated macros in the response so the UI can show immediate feedback
 
-The data deletion flow lives in `src/app/settings/page.tsx`. The user must type "DELETE" to confirm. The `DELETE /api/user/progression-data` route permanently removes all `BodyMetricsLog` and `SessionLog` records for the user and notifies them that the program will revert to profile-only defaults on next generation.
+This ensures the nutrition plan stays aligned with the user's current bodyweight without requiring manual recalculation.
+
+### 17.2 — Weight Trend Deviation Notification
+
+Weight trend deviation is computed in `GET /api/progress`. The algorithm:
+1. Filters bodyweight entries to the last 14 days (2-week window)
+2. Computes a linear regression slope (kg/week) over the recent weight data
+3. Compares the slope against goal-specific expected ranges:
+   - `MUSCLE_GAIN`: +0.1 to +0.5 kg/week
+   - `FAT_LOSS`: -1.0 to -0.2 kg/week
+   - `STRENGTH`: 0.0 to +0.5 kg/week
+   - `GENERAL_FITNESS` / `SPORT_PERFORMANCE`: -0.3 to +0.3 kg/week
+4. Generates a plain-English `trendAlert` string when the trend is outside the expected range
+5. Includes actionable recommendations (e.g., "Consider increasing your calorie intake by 100–200 kcal/day")
+
+The `trendAlert` is surfaced prominently in the dashboard's `SummaryCard` component as a yellow warning banner, ensuring users see it immediately when their weight trend deviates from their goal.
+
+### 17.3 — Progression Data Deletion Flow
+
+The data deletion flow provides users with full control over their historical data:
+
+**Settings Page** (`src/app/settings/page.tsx`):
+- New dedicated settings page with account management options
+- "Delete My Data" section with clear warnings about permanence
+- Requires user to type "DELETE" in a confirmation input to prevent accidental deletion
+- Shows success/error feedback after deletion attempt
+- Disables the delete button until confirmation text matches exactly
+
+**API Endpoint** (`DELETE /api/user/progression-data`):
+- Accepts `userId` as a query parameter
+- Uses a Prisma transaction to ensure atomic deletion:
+  1. Finds all `SessionLog` IDs for the user
+  2. Deletes all `SetLog` entries associated with those sessions
+  3. Deletes all `SessionLog` entries for the user
+  4. Deletes all `BodyMetricsLog` entries for the user
+- Returns a confirmation message explaining that the program will revert to profile-only defaults
+- Handles errors gracefully with detailed error messages
+
+This satisfies the requirement that users can permanently delete their progression data while maintaining their profile and program structure. After deletion, the program generator will work from profile data only, without historical performance or body metrics to inform adjustments.
 
 ---
 

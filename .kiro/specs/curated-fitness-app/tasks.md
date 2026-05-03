@@ -225,88 +225,88 @@ TypeScript throughout. Prisma + SQLite for dev. fast-check for property-based te
 
 > Owns: meals data, nutrition planner, body metrics API, progress data API, nutrition UI, body metrics UI, progress dashboard
 
-- [ ] 13. Nutrition Planner [Person B]
-  - [ ] 13.1 Implement `src/lib/nutritionPlanner.ts`
+- [x] 13. Nutrition Planner [Person B]
+  - [x] 13.1 Implement `src/lib/nutritionPlanner.ts`
     - `generateNutritionPlan(macros: MacroTargets, preferences: NutritionPreferences): NutritionPlan`
     - Produce daily meal suggestions (breakfast, lunch, dinner, optional snack) that sum to the calorie and macro targets
     - Filter meals by `cuisinePreference`, `budgetLevel`, and `cookingTimeMinutes`
     - Each meal includes `proteinG`, `carbsG`, `fatG`, `calories`, `ingredients`, `instructions`, `prepTimeMinutes`, `estimatedCostUsd`
     - _Requirements: 6.1–6.7_
-  - [ ] 13.2 Create `src/data/meals.json` with at least 30 meal templates covering low/medium/high budget and multiple cuisine types
+  - [x] 13.2 Create `src/data/meals.json` with at least 30 meal templates covering low/medium/high budget and multiple cuisine types
     - Each entry must include all fields from the `Meal` model
     - _Requirements: 6.2, 6.3, 6.4_
-  - [ ]* 13.3 Write property test for meal macro aggregation (Property 10)
+  - [x] 13.3 Write property test for meal macro aggregation (Property 10)
     - **Property 10: Meal Macros Aggregate Correctly**
     - **Validates: Requirements 6.6, 6.7**
     - Generate random sets of meals with arbitrary macro values; assert daily totals match the sum of individual meals within ±1 g per macro and ±5 kcal
     - Tag: `// Feature: curated-fitness-app, Property 10: Meal Macros Aggregate Correctly`
 
-- [ ] 14. Checkpoint B — nutrition engine verified [Person B]
+- [x] 14. Checkpoint B — nutrition engine verified [Person B]
   - Ensure all Person B tests pass before continuing.
 
-- [ ] 15. API routes — nutrition plan, body metrics, progress data [Person B]
-  - [ ] 15.1 Create `src/app/api/nutrition-plan/route.ts`
+- [x] 15. API routes — nutrition plan, body metrics, progress data [Person B]
+  - [x] 15.1 Create `src/app/api/nutrition-plan/route.ts`
     - `GET /api/nutrition-plan`: return stored `NutritionPlan` with meals and daily totals
     - _Requirements: 6.1–6.7_
-  - [ ] 15.2 Create `src/app/api/body-metrics/route.ts`
+  - [x] 15.2 Create `src/app/api/body-metrics/route.ts`
     - `POST /api/body-metrics`: validate and persist `BodyMetricsLog` entry; recalculate TDEE and `MacroTargets` using new weight; update `NutritionPlan` if calorie target changes by more than 50 kcal
     - _Requirements: 12.1–12.6, 2.4_
-  - [ ] 15.3 Create `src/app/api/progress/route.ts`
+  - [x] 15.3 Create `src/app/api/progress/route.ts`
     - `GET /api/progress?from=&to=&exerciseIds=`: return aggregated `ProgressionData` — max load per exercise per session date, bodyweight entries, measurement entries, all filtered to the requested date range
     - Calculate `Weight_Trend` (kg/week linear regression over the period) and include in response
     - Include `{ trendAlert: string | null }` when 2-week weight trend deviates from goal expectation
     - _Requirements: 13.1–13.8, 15.1–15.8_
-  - [ ]* 15.4 Write property test for progress chart data completeness (Property 11)
+  - [x] 15.4 Write property test for progress chart data completeness (Property 11)
     - **Property 11: Progress Chart Data Completeness**
     - **Validates: Requirements 13.1, 13.2, 13.3, 13.4**
     - Generate random session logs and date ranges; assert every data point returned by `GET /api/progress` falls within the requested date range
     - Tag: `// Feature: curated-fitness-app, Property 11: Progress Chart Data Completeness`
-  - [ ] 15.5 Create `PATCH /api/profile` for activity level update
+  - [x] 15.5 Create `PATCH /api/profile` for activity level update
     - Accept `activityLevel` update; recalculate TDEE and macros; update `NutritionPlan`
     - _Requirements: 2.5_
 
-- [ ] 16. Nutrition UI, Body Metrics UI, Progress Dashboard [Person B]
-  - [ ] 16.1 Create `src/app/nutrition/page.tsx`
+- [x] 16. Nutrition UI, Body Metrics UI, Progress Dashboard [Person B]
+  - [x] 16.1 Create `src/app/nutrition/page.tsx`
     - Display daily calorie target and macro targets (protein, carbs, fat in grams)
     - List meals with name, cuisine, prep time, cost, macro breakdown
     - Daily aggregate totals alongside targets
     - Ingredient substitution: mark ingredient as unavailable → suggest nutritionally equivalent substitute
     - _Requirements: 6.1–6.7, 2.3_
-  - [ ] 16.2 Create `src/app/metrics/page.tsx`
+  - [x] 16.2 Create `src/app/metrics/page.tsx`
     - Form to log bodyweight + optional measurements + optional photo upload
     - List of past entries with edit and delete controls
     - Show 7-day reminder prompt if last entry is ≥ 7 days ago
     - Handle photo upload with 3-attempt retry and graceful fallback
     - _Requirements: 12.1–12.6_
-  - [ ] 16.3 Create `src/app/dashboard/page.tsx` with `SummaryCard`
+  - [x] 16.3 Create `src/app/dashboard/page.tsx` with `SummaryCard`
     - Display Weight_Trend (kg/week), top 3 exercises by recent load increase, measurement deltas
     - Date picker (from / to); on change, re-fetch `GET /api/progress?from=&to=` and update all charts
     - Surface `trendAlert` from progress API in the summary card
     - _Requirements: 13.4, 13.8, 15.2, 15.3, 15.8_
-  - [ ] 16.4 Create `src/components/dashboard/StrengthChart.tsx`
+  - [x] 16.4 Create `src/components/dashboard/StrengthChart.tsx`
     - Recharts `LineChart` of max load per session for a selected exercise
     - Exercise selector dropdown populated from `Performance_History`
     - Show "Log more data to see your trend" when fewer than 2 data points
     - _Requirements: 13.1, 13.5, 13.6_
-  - [ ] 16.5 Create `src/components/dashboard/BodyweightChart.tsx`
+  - [x] 16.5 Create `src/components/dashboard/BodyweightChart.tsx`
     - Recharts `LineChart` of bodyweight over time with linear trend line overlay
     - Show "Log more data to see your trend" when fewer than 2 data points
     - _Requirements: 13.2, 13.6_
-  - [ ] 16.6 Create `src/components/dashboard/MeasurementChart.tsx`
+  - [x] 16.6 Create `src/components/dashboard/MeasurementChart.tsx`
     - Recharts `LineChart` per measurement site; show rate of change annotation when ≥ 4 entries
     - _Requirements: 13.3, 15.4_
-  - [ ] 16.7 Create `src/components/dashboard/PhotoGallery.tsx`
+  - [x] 16.7 Create `src/components/dashboard/PhotoGallery.tsx`
     - Chronological grid of progress photos; click any two to open side-by-side comparison modal
     - _Requirements: 13.7_
 
-- [ ] 17. Wiring — nutrition/progress vertical [Person B]
-  - [ ] 17.1 Wire TDEE recalculation on body metrics submission
+- [x] 17. Wiring — nutrition/progress vertical [Person B]
+  - [x] 17.1 Wire TDEE recalculation on body metrics submission
     - In `POST /api/body-metrics` handler: after persisting entry, call `calculateTDEE` with new weight, call `deriveMacroTargets`, update `NutritionPlan` in DB
     - _Requirements: 2.4_
-  - [ ] 17.2 Wire weight trend deviation notification
+  - [x] 17.2 Wire weight trend deviation notification
     - In `GET /api/progress`: compute 2-week weight trend; compare to goal expectation; include `{ trendAlert: string | null }` in response; surface alert in `SummaryCard`
     - _Requirements: 15.2, 15.3_
-  - [ ] 17.3 Progression data deletion flow
+  - [x] 17.3 Progression data deletion flow
     - Add "Delete my data" option in user settings page (`src/app/settings/page.tsx`)
     - Require user to type "DELETE" to confirm
     - `DELETE /api/user/progression-data`: permanently delete all `BodyMetricsLog` and `SessionLog` records for the user; notify user that program will revert to profile-only defaults
